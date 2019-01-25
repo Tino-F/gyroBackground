@@ -1,0 +1,25 @@
+{
+  "name": "KaleidoBackground",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack --watch & http-server ."
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.1.6",
+    "@babel/preset-env": "^7.1.6",
+    "babel-loader": "^8.0.4",
+    "webpack": "^4.25.1",
+    "webpack-cli": "^3.1.2"
+  },
+  "dependencies": {
+    "babel-preset-env": "^2.0.0-alpha.20",
+    "three": "^0.98.0",
+    "uglifyjs-webpack-plugin": "^2.1.1",
+    "webvr-polyfill": "^0.10.10"
+  }
+}
