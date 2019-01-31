@@ -7,18 +7,20 @@ Sensitivity
 */
 
 import WebVRPolyfill from 'webvr-polyfill';
-
+import Relax from 'rellax';
 
 
 export default class KaleidoBackground {
 
-  drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY) {
+  drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY, scale) {
 
     if (arguments.length === 2) {
         x = y = 0;
         w = ctx.canvas.width;
         h = ctx.canvas.height;
     }
+
+    scale = typeof scale === "number" ? scale : 1;
 
     // default offset is center
     offsetX = typeof offsetX === "number" ? offsetX : 0.5;
@@ -106,6 +108,37 @@ export default class KaleidoBackground {
 
   }
 
+  enableParallax( target ) {
+
+    let parallaxItem = new Relax( `.${this.canvasClass}`, {
+
+    });
+
+  }
+
+  resize( e ) {
+
+    this.targets.forEach( function( targetEl, i ) {
+
+      let boundingRect = targetEl.getBoundingClientRect();
+      let height = boundingRect.height;
+      let width = boundingRect.width
+
+      //console.log(`width: ${width}, height: ${height}`);
+
+      this.ctxArray[i].height = height;
+      this.ctxArray[i].width = width;
+
+      this.containerArray[i].style.height = height;
+      this.containerArray[i].style.width = width;
+
+      this.containerArray[i].children[0].height = height;
+      this.containerArray[i].children[0].width = width;
+
+    }.bind( this ));
+
+  }
+
   animate() {
 
     requestAnimationFrame( this.animate );
@@ -117,29 +150,32 @@ export default class KaleidoBackground {
 
     this.ctxArray.forEach(function( el ) {
 
-      this.drawImageProp( el.ctx, this.image, -x - el.xOff, -y - el.yOff, el.width, el.height )
+      this.drawImageProp( el.ctx, this.image, x, y, el.width, el.height )
 
     }.bind( this ));
 
   }
 
-  constructor( target, imageSource, { sensitivity = 1 } = { sensitivity: 1 } ) {
+  constructor( target, imageSource, { sensitivity = 0.5, parallax = false } = { sensitivity: 1, parallax: false } ) {
 
     if ( !target ) {
-      throw new Error('No Kaleido target was specified.');
+      throw new Error('No target was specified.');
     }
 
     this.sensitivity = sensitivity;
     this.scaleConstant = 200;
     this.originalOrientation = [0, 0, 0];
+    this.resize = this.resize.bind( this );
     this.enableAccelerometer = this.enableAccelerometer.bind( this );
     this.animate = this.animate.bind( this );
+    this.enableParallax = this.enableParallax.bind( this );
 
     this.enableAccelerometer();
 
     this.image = document.createElement('img');
     this.image.setAttribute('src', imageSource);
     this.ctxArray = [];
+    this.containerArray = []
 
     window.onload = function () {
 
@@ -158,11 +194,28 @@ export default class KaleidoBackground {
 
         //Create and size canvas
         let canvas = document.createElement('canvas');
+
+        //Create unique class name (used for Rellax.js)
+        this.canvasClass = Math.floor(Math.random() * 100000) + 1;
+        this.canvasClass = 'gyroCanvas-' + this.canvasClass;
+        canvas.classList.add( this.canvasClass );
+
         canvas.width = width;
         canvas.height = height;
-        canvas.style.position = 'absolute';
-        canvas.style.zIndex = -1;
         let ctx = canvas.getContext('2d');
+
+        //Create div container for canvas so that 3D CSS scaling can be taken advantage of
+
+        let container = document.createElement('div');
+        container.className = 'gyro-container';
+        container.style.position = 'absolute';
+        container.style.zIndex = -1;
+        container.style.overflow = 'hidden';
+        container.width = width;
+        container.height = height;
+
+        container.append( canvas );
+        this.containerArray.push( container );
 
         //Draw Image if the source is valid
         try {
@@ -171,39 +224,38 @@ export default class KaleidoBackground {
           throw new Error('Unable to draw selected Image, please check the image source.');
         }
 
-        let scalingSize = ( this.scaleConstant * this.sensitivity * 2 ) * 2;
-        let newWidth, newHeight;
-
-        if( height > width ) {
-
-          newHeight = height + scalingSize;
-          newWidth = ( newHeight / height ) * width;
-
-        } else {
-
-          newWidth = width + scalingSize;
-          newHeight = ( newWidth / width ) * height;
-
-        }
-
         this.ctxArray.push( {
           ctx: ctx,
-          width: newWidth,
-          height: newHeight,
-          xOff: (newWidth - width) / 2,
-          yOff: (newHeight - height) / 2
+          width: width,
+          height: height,
+          scale: 1 + ( this.sensitivity * 0.1 )
         } );
-        targetEl.prepend( canvas );
+
+        targetEl.prepend( container );
 
       }.bind( this ));
 
-      if ( this.vrDisplay ) {
+      if ( !this.vrDisplay && parallax ) {
+
+        this.enableParallax( target );
+
+      } else {
+
+        this.containerArray.forEach(function ( container ) {
+
+          container.children[0].style.transform = `scale(${ 1 + ( this.sensitivity * 0.8 ) })`;
+
+        }.bind( this ));
+
         this.vrDisplay.getFrameData( this.frameData );
         this.originalOrientation = [ this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] ] ;
         this.animate();
+
       }
 
     }.bind( this );
+
+    window.addEventListener('resize', this.resize)
 
   }
 
