@@ -221,24 +221,29 @@ function () {
     }
   }, {
     key: "enableParallax",
-    value: function enableParallax(target) {
-      var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_1___default.a(".".concat(this.canvasClass), {});
+    value: function enableParallax(target, speed) {
+      var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_1___default.a(".".concat(target), {
+        speed: speed,
+        center: true
+      });
     }
   }, {
     key: "resize",
     value: function resize(e) {
-      this.targets.forEach(function (targetEl, i) {
-        var boundingRect = targetEl.getBoundingClientRect();
-        var height = boundingRect.height;
-        var width = boundingRect.width; //console.log(`width: ${width}, height: ${height}`);
+      if (this.vrDisplay) {
+        this.targets.forEach(function (targetEl, i) {
+          var boundingRect = targetEl.getBoundingClientRect();
+          var height = boundingRect.height;
+          var width = boundingRect.width; //console.log(`width: ${width}, height: ${height}`);
 
-        this.ctxArray[i].height = height;
-        this.ctxArray[i].width = width;
-        this.containerArray[i].style.height = height;
-        this.containerArray[i].style.width = width;
-        this.containerArray[i].children[0].height = height;
-        this.containerArray[i].children[0].width = width;
-      }.bind(this));
+          this.ctxArray[i].height = height;
+          this.ctxArray[i].width = width;
+          this.containerArray[i].style.height = height;
+          this.containerArray[i].style.width = width;
+          this.containerArray[i].children[0].height = height;
+          this.containerArray[i].children[0].width = width;
+        }.bind(this));
+      }
     }
   }, {
     key: "animate",
@@ -257,12 +262,15 @@ function () {
   function KaleidoBackground(target, imageSource) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
       sensitivity: 1,
-      parallax: false
+      parallax: false,
+      parallaxSpeed: -2
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
         _ref$parallax = _ref.parallax,
-        parallax = _ref$parallax === void 0 ? false : _ref$parallax;
+        parallax = _ref$parallax === void 0 ? false : _ref$parallax,
+        _ref$parallaxSpeed = _ref.parallaxSpeed,
+        parallaxSpeed = _ref$parallaxSpeed === void 0 ? -2 : _ref$parallaxSpeed;
 
     _classCallCheck(this, KaleidoBackground);
 
@@ -282,6 +290,7 @@ function () {
     this.image.setAttribute('src', imageSource);
     this.ctxArray = [];
     this.containerArray = [];
+    this.canvasClasses = [];
 
     window.onload = function () {
       this.targets = document.querySelectorAll(target);
@@ -298,9 +307,10 @@ function () {
 
         var canvas = document.createElement('canvas'); //Create unique class name (used for Rellax.js)
 
-        this.canvasClass = Math.floor(Math.random() * 100000) + 1;
-        this.canvasClass = 'gyroCanvas-' + this.canvasClass;
-        canvas.classList.add(this.canvasClass);
+        var canvasClass = Math.floor(Math.random() * 100000) + 1;
+        canvasClass = 'gyroCanvas-' + canvasClass;
+        canvas.classList.add(canvasClass);
+        this.canvasClasses.push(canvasClass);
         canvas.width = width;
         canvas.height = height;
         var ctx = canvas.getContext('2d'); //Create div container for canvas so that 3D CSS scaling can be taken advantage of
@@ -331,7 +341,9 @@ function () {
       }.bind(this));
 
       if (!this.vrDisplay && parallax) {
-        this.enableParallax(target);
+        this.canvasClasses.forEach(function (className) {
+          this.enableParallax(className, parallaxSpeed);
+        }.bind(this));
       } else {
         this.containerArray.forEach(function (container) {
           container.children[0].style.transform = "scale(".concat(1 + this.sensitivity * 0.8, ")");
@@ -342,7 +354,7 @@ function () {
       }
     }.bind(this);
 
-    window.addEventListener('resize', this.resize);
+    window.addEventListener('resize', this.resize.bind(this));
   }
 
   return KaleidoBackground;

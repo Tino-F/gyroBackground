@@ -108,34 +108,37 @@ export default class KaleidoBackground {
 
   }
 
-  enableParallax( target ) {
+  enableParallax( target, speed ) {
 
-    let parallaxItem = new Relax( `.${this.canvasClass}`, {
-
+    let parallaxItem = new Relax( `.${target}`, {
+      speed: speed,
+      center: true
     });
 
   }
 
   resize( e ) {
 
-    this.targets.forEach( function( targetEl, i ) {
+    if ( this.vrDisplay ) {
+      this.targets.forEach( function( targetEl, i ) {
 
-      let boundingRect = targetEl.getBoundingClientRect();
-      let height = boundingRect.height;
-      let width = boundingRect.width
+        let boundingRect = targetEl.getBoundingClientRect();
+        let height = boundingRect.height;
+        let width = boundingRect.width
 
-      //console.log(`width: ${width}, height: ${height}`);
+        //console.log(`width: ${width}, height: ${height}`);
 
-      this.ctxArray[i].height = height;
-      this.ctxArray[i].width = width;
+        this.ctxArray[i].height = height;
+        this.ctxArray[i].width = width;
 
-      this.containerArray[i].style.height = height;
-      this.containerArray[i].style.width = width;
+        this.containerArray[i].style.height = height;
+        this.containerArray[i].style.width = width;
 
-      this.containerArray[i].children[0].height = height;
-      this.containerArray[i].children[0].width = width;
+        this.containerArray[i].children[0].height = height;
+        this.containerArray[i].children[0].width = width;
 
-    }.bind( this ));
+      }.bind( this ));
+    }
 
   }
 
@@ -156,7 +159,7 @@ export default class KaleidoBackground {
 
   }
 
-  constructor( target, imageSource, { sensitivity = 0.5, parallax = false } = { sensitivity: 1, parallax: false } ) {
+  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2 } = { sensitivity: 1, parallax: false, parallaxSpeed: -2 } ) {
 
     if ( !target ) {
       throw new Error('No target was specified.');
@@ -175,7 +178,8 @@ export default class KaleidoBackground {
     this.image = document.createElement('img');
     this.image.setAttribute('src', imageSource);
     this.ctxArray = [];
-    this.containerArray = []
+    this.containerArray = [];
+    this.canvasClasses = [];
 
     window.onload = function () {
 
@@ -196,9 +200,10 @@ export default class KaleidoBackground {
         let canvas = document.createElement('canvas');
 
         //Create unique class name (used for Rellax.js)
-        this.canvasClass = Math.floor(Math.random() * 100000) + 1;
-        this.canvasClass = 'gyroCanvas-' + this.canvasClass;
-        canvas.classList.add( this.canvasClass );
+        let canvasClass = Math.floor(Math.random() * 100000) + 1;
+        canvasClass = 'gyroCanvas-' + canvasClass;
+        canvas.classList.add( canvasClass );
+        this.canvasClasses.push( canvasClass );
 
         canvas.width = width;
         canvas.height = height;
@@ -237,7 +242,11 @@ export default class KaleidoBackground {
 
       if ( !this.vrDisplay && parallax ) {
 
-        this.enableParallax( target );
+        this.canvasClasses.forEach(function ( className ) {
+
+          this.enableParallax( className, parallaxSpeed );
+
+        }.bind( this ));
 
       } else {
 
@@ -255,7 +264,7 @@ export default class KaleidoBackground {
 
     }.bind( this );
 
-    window.addEventListener('resize', this.resize)
+    window.addEventListener('resize', this.resize.bind( this ))
 
   }
 
