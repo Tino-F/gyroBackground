@@ -8,59 +8,17 @@ Sensitivity
 
 import WebVRPolyfill from 'webvr-polyfill';
 import Relax from 'rellax';
-
+import {
+  Scene,
+  WebGLRenderer,
+  PerspectiveCamera,
+  TextureLoader,
+  MeshBasicMaterial,
+  PlaneGeometry,
+  Mesh
+} from 'three';
 
 export default class KaleidoBackground {
-
-  drawImageProp(ctx, img, x, y, w, h, offsetX, offsetY, scale) {
-
-    if (arguments.length === 2) {
-        x = y = 0;
-        w = ctx.canvas.width;
-        h = ctx.canvas.height;
-    }
-
-    scale = typeof scale === "number" ? scale : 1;
-
-    // default offset is center
-    offsetX = typeof offsetX === "number" ? offsetX : 0.5;
-    offsetY = typeof offsetY === "number" ? offsetY : 0.5;
-
-    // keep bounds [0.0, 1.0]
-    if (offsetX < 0) offsetX = 0;
-    if (offsetY < 0) offsetY = 0;
-    if (offsetX > 1) offsetX = 1;
-    if (offsetY > 1) offsetY = 1;
-
-    var iw = img.width,
-        ih = img.height,
-        r = Math.min(w / iw, h / ih),
-        nw = iw * r,   // new prop. width
-        nh = ih * r,   // new prop. height
-        cx, cy, cw, ch, ar = 1;
-
-    // decide which gap to fill
-    if (nw < w) ar = w / nw;
-    if (Math.abs(ar - 1) < 1e-14 && nh < h) ar = h / nh;  // updated
-    nw *= ar;
-    nh *= ar;
-
-    // calc source rectangle
-    cw = iw / (nw / w);
-    ch = ih / (nh / h);
-
-    cx = (iw - cw) * offsetX;
-    cy = (ih - ch) * offsetY;
-
-    // make sure source rectangle is valid
-    if (cx < 0) cx = 0;
-    if (cy < 0) cy = 0;
-    if (cw > iw) cw = iw;
-    if (ch > ih) ch = ih;
-
-    // fill image in dest. rectangle
-    ctx.drawImage(img, cx, cy, cw, ch,  x, y, w, h);
-  }
 
   enableAccelerometer() {
 
@@ -108,11 +66,19 @@ export default class KaleidoBackground {
 
   }
 
-  enableParallax( target, speed ) {
+  enableParallax( speed ) {
 
-    let parallaxItem = new Relax( `.${target}`, {
-      speed: speed,
-      center: true
+    this.renderers.forEach( function ( renderer ) {
+
+      let uniqueClass = Math.floor(Math.random() * 100000) + 1;
+      uniqueClass = 'gyroCanvas-' + uniqueClass;
+      renderer.domElement.classList.add( uniqueClass );
+
+      let parallaxItem = new Relax( `.${uniqueClass}`, {
+        speed: speed,
+        center: true
+      });
+
     });
 
   }
@@ -120,24 +86,24 @@ export default class KaleidoBackground {
   resize( e ) {
 
     if ( this.vrDisplay ) {
-      this.targets.forEach( function( targetEl, i ) {
 
-        let boundingRect = targetEl.getBoundingClientRect();
-        let height = boundingRect.height;
-        let width = boundingRect.width
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.renderer.setSize(window.innerWidth, window.innerHeight);
 
-        //console.log(`width: ${width}, height: ${height}`);
+      this.targets.forEach( function ( target, i ) {
 
-        this.ctxArray[i].height = height;
-        this.ctxArray[i].width = width;
+        let boundingRect = target.getBoundingClientRect();
+        let w = boundingRect.width;
+        let h = boundingRect.height;
 
-        this.containerArray[i].style.height = height;
-        this.containerArray[i].style.width = width;
+        target.children[0].style.height = h + 'px';
+        target.children[0].style.width = w + 'px';
 
-        this.containerArray[i].children[0].height = height;
-        this.containerArray[i].children[0].width = width;
+        this.renderers[i].setSize( w, h );
 
       }.bind( this ));
+
     }
 
   }
@@ -148,121 +114,160 @@ export default class KaleidoBackground {
 
     this.vrDisplay.getFrameData( this.frameData );
     let orientation = this.frameData.pose.orientation;
-    let x = ( this.originalOrientation[1] - orientation[1] ) * this.sensitivity * this.scaleConstant;
-    let y = ( this.originalOrientation[0] - orientation[0] ) * this.sensitivity * this.scaleConstant;
 
-    this.ctxArray.forEach(function( el ) {
+    let x = this.originalOrientation[0] - orientation[0];
+    let y = this.originalOrientation[1] - orientation[1];
+    let z = this.originalOrientation[2] - orientation[2];
 
-      this.drawImageProp( el.ctx, this.image, x, y, el.width, el.height )
+    this.camera.position.x = y * 100;
+    this.camera.position.y = x * -100;
+    this.camera.rotation.z = orientation[2];
 
+    this.renderers.forEach(function ( renderer ) {
+      renderer.render( this.scene, this.camera );
     }.bind( this ));
 
   }
 
-  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2 } = { sensitivity: 1, parallax: false, parallaxSpeed: -2 } ) {
+  getVisibleHeight( depth ) {
+    // compensate for cameras not positioned at z=0
+    const cameraOffset = this.camera.position.z;
+    if ( depth < cameraOffset ) depth -= cameraOffset;
+    else depth += cameraOffset;
+
+    // vertical fov in radians
+    const vFOV = this.camera.fov * Math.PI / 180;
+
+    // Math.abs to ensure the result is always positive
+    return 2 * Math.tan( vFOV / 2 ) * Math.abs( depth );
+  };
+
+  generateRenderer( target ) {
+
+    //Get Element height
+    let boundingRect = target.getBoundingClientRect();
+    let w = boundingRect.width;
+    let h = boundingRect.height;
+
+
+    if ( this.squareMax === 0 ) {
+      this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+    }
+
+    if ( w > h ) {
+      this.squareMax = h < this.squareMax ? h : this.squareMax;
+    } else {
+      this.squareMax = w < this.squareMax ? w : this.squareMax;
+    }
+
+    let renderer = new WebGLRenderer({ antialias: true });
+    renderer.setSize( w, h );
+
+    let container = document.createElement('div');
+    container.style.height = h + 'px';
+    container.style.width = w + 'px';
+    container.style.overflow = 'hidden';
+    container.style.position = 'absolute';
+    container.appendChild( renderer.domElement );
+    target.prepend( container )
+
+    return renderer;
+
+  }
+
+  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2 } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2 } ) {
 
     if ( !target ) {
       throw new Error('No target was specified.');
     }
 
     this.sensitivity = sensitivity;
-    this.scaleConstant = 200;
     this.originalOrientation = [0, 0, 0];
     this.resize = this.resize.bind( this );
     this.enableAccelerometer = this.enableAccelerometer.bind( this );
     this.animate = this.animate.bind( this );
     this.enableParallax = this.enableParallax.bind( this );
+    this.generateRenderer = this.generateRenderer.bind( this );
+    this.getVisibleHeight = this.getVisibleHeight.bind( this );
+
+    this.renderers = [];
+    this.squareMax = 0;
 
     this.enableAccelerometer();
 
-    this.image = document.createElement('img');
-    this.image.setAttribute('src', imageSource);
-    this.ctxArray = [];
-    this.containerArray = [];
-    this.canvasClasses = [];
+    this.loader = new TextureLoader();
 
-    window.onload = function () {
+    this.loader.load( imageSource, function ( texture ) {
+      //onload
 
-      this.targets = document.querySelectorAll( target );
+      this.material = new MeshBasicMaterial({ map: texture });
+      this.imageWidth = texture.image.width;
+      this.imageHeight = texture.image.height;
 
-      if ( !this.targets ) {
-        throw new Error('Cound not find any taget elements with query: ' + target);
-      }
+      //Wait for the page to finish loading so that we can find all the target elements
+      window.onload = function () {
 
-      this.targets.forEach( function( targetEl ) {
+        this.targets = document.querySelectorAll( target );
 
-        //Get Element height
-        let boundingRect = targetEl.getBoundingClientRect();
-        let height = boundingRect.height;
-        let width = boundingRect.width;
-
-        //Create and size canvas
-        let canvas = document.createElement('canvas');
-
-        //Create unique class name (used for Rellax.js)
-        let canvasClass = Math.floor(Math.random() * 100000) + 1;
-        canvasClass = 'gyroCanvas-' + canvasClass;
-        canvas.classList.add( canvasClass );
-        this.canvasClasses.push( canvasClass );
-
-        canvas.width = width;
-        canvas.height = height;
-        let ctx = canvas.getContext('2d');
-
-        //Create div container for canvas so that 3D CSS scaling can be taken advantage of
-
-        let container = document.createElement('div');
-        container.className = 'gyro-container';
-        container.style.position = 'absolute';
-        container.style.zIndex = -1;
-        container.style.overflow = 'hidden';
-        container.width = width;
-        container.height = height;
-
-        container.append( canvas );
-        this.containerArray.push( container );
-
-        //Draw Image if the source is valid
-        try {
-          this.drawImageProp( ctx, this.image, 0, 0, width, height )
-        } catch ( err ) {
-          throw new Error('Unable to draw selected Image, please check the image source.');
+        if ( !this.targets ) {
+          throw new Error('Cound not find any taget elements with query: ' + target);
         }
 
-        this.ctxArray.push( {
-          ctx: ctx,
-          width: width,
-          height: height,
-          scale: 1 + ( this.sensitivity * 0.1 )
-        } );
+        this.camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1500 );
+        this.scene = new Scene();
 
-        targetEl.prepend( container );
+        let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
+        this.imagePlane = new Mesh( g, this.material );
+        this.scene.add( this.imagePlane );
 
-      }.bind( this ));
+        //Generate renderers for each target
+        this.targets.forEach( function ( target ) {
 
-      if ( !this.vrDisplay && parallax ) {
-
-        this.canvasClasses.forEach(function ( className ) {
-
-          this.enableParallax( className, parallaxSpeed );
+          let renderer = this.generateRenderer( target );
+          this.renderers.push( renderer );
 
         }.bind( this ));
 
-      } else {
+        //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+        this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+        this.camera.position.z = this.dist;
 
-        this.containerArray.forEach(function ( container ) {
+        if ( !this.vrDisplay && parallax ) {
 
-          container.children[0].style.transform = `scale(${ 1 + ( this.sensitivity * 0.8 ) })`;
+          this.renderers.forEach(function ( renderer ) {
+            renderer.render( this.scene, this.camera );
+          }.bind( this ));
 
-        }.bind( this ));
+          this.enableParallax( parallaxSpeed );
 
-        this.vrDisplay.getFrameData( this.frameData );
-        this.originalOrientation = [ this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] ] ;
-        this.animate();
+        } else if ( this.vrDisplay ) {
 
-      }
+          this.vrDisplay.getFrameData( this.frameData );
+          let originalOrientation = this.frameData.pose.orientation;
 
-    }.bind( this );
+          this.originalOrientation = [
+            originalOrientation[0],
+            originalOrientation[1],
+            originalOrientation[2],
+            originalOrientation[3]
+          ]
+
+          this.animate();
+
+        }
+
+      }.bind( this );
+
+    }.bind( this ),
+    //progress callback not yet supported
+    undefined,
+    function ( err ) {
+      //onError
+
+      console.error( err );
+      throw new Error('failed to load image ' + imageSource);
+
+    });
 
     window.addEventListener('resize', this.resize.bind( this ))
 
