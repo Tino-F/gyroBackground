@@ -186,21 +186,38 @@ function () {
       });
     }
   }, {
+    key: "orientationChange",
+    value: function orientationChange(e) {
+      if (window.innerHeight > window.innerWidth) {
+        this.orientation = 'portrait';
+      } else {
+        this.orientation = 'landscape';
+      }
+    }
+  }, {
     key: "resize",
     value: function resize(e) {
-      if (this.vrDisplay) {
-        this.camera.aspect = window.innerWidth / window.innerHeight;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(window.innerWidth, window.innerHeight);
-        this.targets.forEach(function (target, i) {
-          var boundingRect = target.getBoundingClientRect();
-          var w = boundingRect.width;
-          var h = boundingRect.height;
-          target.children[0].style.height = h + 'px';
-          target.children[0].style.width = w + 'px';
-          this.renderers[i].setSize(w, h);
-        }.bind(this));
-      }
+      this.camera.aspect = window.innerWidth / window.innerHeight;
+      this.camera.updateProjectionMatrix();
+      this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+      this.targets.forEach(function (target, i) {
+        var boundingRect = target.getBoundingClientRect();
+        var w = boundingRect.width;
+        var h = boundingRect.height;
+
+        if (w > h) {
+          this.squareMax = h < this.squareMax ? h : this.squareMax;
+        } else {
+          this.squareMax = w < this.squareMax ? w : this.squareMax;
+        }
+
+        target.children[0].style.height = h + 'px';
+        target.children[0].style.width = w + 'px';
+        this.renderers[i].setSize(w, h);
+      }.bind(this));
+      this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+      this.camera.position.z = this.dist;
+      console.log(this.dist);
     }
   }, {
     key: "animate",
@@ -237,10 +254,6 @@ function () {
       var w = boundingRect.width;
       var h = boundingRect.height;
 
-      if (this.squareMax === 0) {
-        this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-      }
-
       if (w > h) {
         this.squareMax = h < this.squareMax ? h : this.squareMax;
       } else {
@@ -248,8 +261,10 @@ function () {
       }
 
       var renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
-        antialias: true
+        antialias: true,
+        alpha: true
       });
+      renderer.setClearColor(0x000000, 0);
       renderer.setSize(w, h);
       var container = document.createElement('div');
       container.style.height = h + 'px';
@@ -289,8 +304,15 @@ function () {
     this.enableParallax = this.enableParallax.bind(this);
     this.generateRenderer = this.generateRenderer.bind(this);
     this.getVisibleHeight = this.getVisibleHeight.bind(this);
+    this.orientationChange = this.orientationChange.bind(this);
     this.renderers = [];
-    this.squareMax = 0;
+
+    if (window.innerHeight > window.innerWidth) {
+      this.orientation = 'portrait';
+    } else {
+      this.orientation = 'landscape';
+    }
+
     this.enableAccelerometer();
     this.loader = new three__WEBPACK_IMPORTED_MODULE_2__["TextureLoader"]();
     this.loader.load(imageSource, function (texture) {
@@ -312,7 +334,9 @@ function () {
         this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
         var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
         this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
-        this.scene.add(this.imagePlane); //Generate renderers for each target
+        this.scene.add(this.imagePlane); //
+
+        this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight; //Generate renderers for each target
 
         this.targets.forEach(function (target) {
           var renderer = this.generateRenderer(target);
@@ -341,6 +365,7 @@ function () {
       throw new Error('failed to load image ' + imageSource);
     });
     window.addEventListener('resize', this.resize.bind(this));
+    window.addEventListener('orientationchange', this.orientationChange.bind(this));
   }
 
   return KaleidoBackground;

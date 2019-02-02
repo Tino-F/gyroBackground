@@ -83,28 +83,46 @@ export default class KaleidoBackground {
 
   }
 
+  orientationChange ( e ) {
+
+    if ( window.innerHeight > window.innerWidth ) {
+      this.orientation = 'portrait';
+    } else {
+      this.orientation = 'landscape';
+    }
+
+  }
+
   resize( e ) {
 
-    if ( this.vrDisplay ) {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
 
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
 
-      this.targets.forEach( function ( target, i ) {
+    this.targets.forEach( function ( target, i ) {
 
-        let boundingRect = target.getBoundingClientRect();
-        let w = boundingRect.width;
-        let h = boundingRect.height;
+      let boundingRect = target.getBoundingClientRect();
+      let w = boundingRect.width;
+      let h = boundingRect.height;
 
-        target.children[0].style.height = h + 'px';
-        target.children[0].style.width = w + 'px';
+      if ( w > h ) {
+        this.squareMax = h < this.squareMax ? h : this.squareMax;
+      } else {
+        this.squareMax = w < this.squareMax ? w : this.squareMax;
+      }
 
-        this.renderers[i].setSize( w, h );
+      target.children[0].style.height = h + 'px';
+      target.children[0].style.width = w + 'px';
 
-      }.bind( this ));
+      this.renderers[i].setSize( w, h );
 
-    }
+    }.bind( this ));
+
+    this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+    this.camera.position.z = this.dist;
+
+    console.log( this.dist );
 
   }
 
@@ -149,18 +167,14 @@ export default class KaleidoBackground {
     let w = boundingRect.width;
     let h = boundingRect.height;
 
-
-    if ( this.squareMax === 0 ) {
-      this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-    }
-
     if ( w > h ) {
       this.squareMax = h < this.squareMax ? h : this.squareMax;
     } else {
       this.squareMax = w < this.squareMax ? w : this.squareMax;
     }
 
-    let renderer = new WebGLRenderer({ antialias: true });
+    let renderer = new WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setClearColor( 0x000000, 0 );
     renderer.setSize( w, h );
 
     let container = document.createElement('div');
@@ -189,9 +203,15 @@ export default class KaleidoBackground {
     this.enableParallax = this.enableParallax.bind( this );
     this.generateRenderer = this.generateRenderer.bind( this );
     this.getVisibleHeight = this.getVisibleHeight.bind( this );
+    this.orientationChange = this.orientationChange.bind( this );
 
     this.renderers = [];
-    this.squareMax = 0;
+
+    if ( window.innerHeight > window.innerWidth ) {
+      this.orientation = 'portrait';
+    } else {
+      this.orientation = 'landscape';
+    }
 
     this.enableAccelerometer();
 
@@ -219,6 +239,9 @@ export default class KaleidoBackground {
         let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
         this.imagePlane = new Mesh( g, this.material );
         this.scene.add( this.imagePlane );
+
+        //
+        this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
 
         //Generate renderers for each target
         this.targets.forEach( function ( target ) {
@@ -269,7 +292,8 @@ export default class KaleidoBackground {
 
     });
 
-    window.addEventListener('resize', this.resize.bind( this ))
+    window.addEventListener('resize', this.resize.bind( this ));
+    window.addEventListener('orientationchange', this.orientationChange.bind( this ));
 
   }
 
