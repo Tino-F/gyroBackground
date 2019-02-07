@@ -73,13 +73,9 @@ export default class KaleidoBackground {
 
   }
 
-  enableParallax( speed ) {
+  enableParallax( className, speed ) {
 
-    let uniqueClass = Math.floor(Math.random() * 100000) + 1;
-    uniqueClass = 'gyroCanvas-' + uniqueClass;
-    this.renderer.domElement.classList.add( uniqueClass );
-
-    let parallaxItem = new Relax( `.${uniqueClass}`, {
+    let parallaxItem = new Relax( `.${className}`, {
       speed: speed,
       center: true
     });
@@ -130,55 +126,6 @@ export default class KaleidoBackground {
 
     }
 
-    /*
-
-    if ( this.w > this.h ) {
-      //Portrait view
-
-      if ( this.imageOrientation == 'landscape' ) {
-
-        return this.imageHeight;
-
-      } else if ( this.imageOrientation == 'portrait' ) {
-
-        if ( ( this.h - this.imageHeight ) > ( this.w - this.imageWidth) ) {
-          return this.imageHeight;
-        } else {
-          return this.imageWidth;
-        }
-
-      } else if ( this.imageOrientation == 'square' ) {
-
-        if( this.w > this.h ) {
-          return this.imageWidth;
-        } else {
-          return this.imageHeight;
-        }
-
-      }
-
-    } else if ( this.w === this.h ) {
-      //Square view
-
-      if ( this.imageHeight > this.imageWidth ) {
-        return this.imageWidth;
-      } else {
-        return this.imageHeight
-      }
-
-    } else {
-      //Landscape view
-
-      if ( this.imageOrientation == 'landscape' ) {
-
-        if ( )
-
-      }
-
-    }
-
-    */
-
   }
 
   resize( e ) {
@@ -186,16 +133,6 @@ export default class KaleidoBackground {
     this.boundingRect = this.target.getBoundingClientRect();
     this.w = this.boundingRect.width;
     this.h = this.boundingRect.height;
-
-    //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-
-    /*
-    if ( this.w > this.h ) {
-      this.squareMax = this.h < this.squareMax ? this.h : this.squareMax;
-    } else {
-      this.squareMax = this.w < this.squareMax ? this.w : this.squareMax;
-    }
-    */
 
     this.squareMax = this.getSquareMax();
 
@@ -270,7 +207,13 @@ export default class KaleidoBackground {
       throw new Error('No target was specified.');
     }
 
+    if ( !imageSource ) {
+      throw new Error('No image was chosen.');
+    }
+
     this.sensitivity = sensitivity;
+    this.imageSource = imageSource;
+    this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];
     this.resize = this.resize.bind( this );
     this.enableAccelerometer = this.enableAccelerometer.bind( this );
@@ -313,46 +256,62 @@ export default class KaleidoBackground {
       window.onload = function () {
 
         this.target = document.querySelector( target );
-        this.boundingRect = this.target.getBoundingClientRect();
-        this.w = this.boundingRect.width;
-        this.h = this.boundingRect.height;
 
         if ( !this.target ) {
           throw new Error('Cound not find any taget elements with query: ' + target);
         }
 
-        this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
-        this.scene = new Scene();
+        this.target.style.position = 'relative';
+        this.target.style.overflow = 'hidden';
 
-        let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
-        this.imagePlane = new Mesh( g, this.material );
-        this.scene.add( this.imagePlane );
+        this.boundingRect = this.target.getBoundingClientRect();
+        this.w = this.boundingRect.width;
+        this.h = this.boundingRect.height;
 
-        //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+        if ( !this.vrDisplay ) {
 
-        this.squareMax = this.getSquareMax();
-        this.renderer = this.generateRenderer();
+          let uniqueClass = Math.floor(Math.random() * 100000) + 1;
+          uniqueClass = 'gyroCanvas-' + uniqueClass;
+          this.container = document.createElement('div');
+          this.container.classList.add( uniqueClass );
+          this.container.style.height = this.h + 'px';
+          this.container.style.width = this.w + 'px';
+          this.container.style.overflow = 'hidden';
+          this.container.style.position = 'absolute';
+          this.container.style.backgroundSize = 'cover';
+          this.container.style.backgroundPosition = 'center';
+          this.container.style.backgroundImage = `url(${this.imageSource})`;
+          this.target.prepend( this.container );
 
-        //Generate renderers for each target
-        /*
-        this.targets.forEach( function ( target ) {
+          if ( parallax ) {
+            this.enableParallax( uniqueClass, parallaxSpeed );
+          }
 
-          let renderer = this.generateRenderer( target );
-          this.renderers.push( renderer );
+          window.addEventListener('resize', function ( e ) {
 
-        }.bind( this ));
-        */
+            this.boundingRect = this.target.getBoundingClientRect();
+            this.w = this.boundingRect.width;
+            this.h = this.boundingRect.height;
 
-        //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-        this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-        this.camera.position.z = this.dist;
+            this.container.style.height = this.h + 'px';
+            this.container.style.width = this.w + 'px';
 
-        if ( !this.vrDisplay && parallax ) {
-
-          this.renderer.render( this.scene, this.camera );
-          this.enableParallax( parallaxSpeed );
+          }.bind( this ));
 
         } else if ( this.vrDisplay ) {
+
+          this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
+          this.scene = new Scene();
+
+          let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
+          this.imagePlane = new Mesh( g, this.material );
+          this.scene.add( this.imagePlane );
+
+          this.squareMax = this.getSquareMax();
+          this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+          this.camera.position.z = this.dist;
+
+          this.renderer = this.generateRenderer();
 
           this.vrDisplay.getFrameData( this.frameData );
           let originalOrientation = this.frameData.pose.orientation;
@@ -364,6 +323,7 @@ export default class KaleidoBackground {
             originalOrientation[3]
           ]
 
+          window.addEventListener('resize', this.resize.bind( this ));
           this.animate();
 
         }
@@ -380,8 +340,6 @@ export default class KaleidoBackground {
       throw new Error('failed to load image ' + imageSource);
 
     });
-
-    window.addEventListener('resize', this.resize.bind( this ));
 
   }
 

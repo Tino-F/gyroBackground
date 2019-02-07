@@ -174,11 +174,8 @@ function () {
     }
   }, {
     key: "enableParallax",
-    value: function enableParallax(speed) {
-      var uniqueClass = Math.floor(Math.random() * 100000) + 1;
-      uniqueClass = 'gyroCanvas-' + uniqueClass;
-      this.renderer.domElement.classList.add(uniqueClass);
-      var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_1___default.a(".".concat(uniqueClass), {
+    value: function enableParallax(className, speed) {
+      var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_1___default.a(".".concat(className), {
         speed: speed,
         center: true
       });
@@ -213,55 +210,13 @@ function () {
           return this.h;
         }
       }
-      /*
-        if ( this.w > this.h ) {
-        //Portrait view
-          if ( this.imageOrientation == 'landscape' ) {
-            return this.imageHeight;
-          } else if ( this.imageOrientation == 'portrait' ) {
-            if ( ( this.h - this.imageHeight ) > ( this.w - this.imageWidth) ) {
-            return this.imageHeight;
-          } else {
-            return this.imageWidth;
-          }
-          } else if ( this.imageOrientation == 'square' ) {
-            if( this.w > this.h ) {
-            return this.imageWidth;
-          } else {
-            return this.imageHeight;
-          }
-          }
-        } else if ( this.w === this.h ) {
-        //Square view
-          if ( this.imageHeight > this.imageWidth ) {
-          return this.imageWidth;
-        } else {
-          return this.imageHeight
-        }
-        } else {
-        //Landscape view
-          if ( this.imageOrientation == 'landscape' ) {
-            if ( )
-          }
-        }
-        */
-
     }
   }, {
     key: "resize",
     value: function resize(e) {
       this.boundingRect = this.target.getBoundingClientRect();
       this.w = this.boundingRect.width;
-      this.h = this.boundingRect.height; //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-
-      /*
-      if ( this.w > this.h ) {
-        this.squareMax = this.h < this.squareMax ? this.h : this.squareMax;
-      } else {
-        this.squareMax = this.w < this.squareMax ? this.w : this.squareMax;
-      }
-      */
-
+      this.h = this.boundingRect.height;
       this.squareMax = this.getSquareMax();
       this.target.children[0].style.height = this.h + 'px';
       this.target.children[0].style.width = this.w + 'px';
@@ -336,7 +291,13 @@ function () {
       throw new Error('No target was specified.');
     }
 
+    if (!imageSource) {
+      throw new Error('No image was chosen.');
+    }
+
     this.sensitivity = sensitivity;
+    this.imageSource = imageSource;
+    this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];
     this.resize = this.resize.bind(this);
     this.enableAccelerometer = this.enableAccelerometer.bind(this);
@@ -369,41 +330,56 @@ function () {
 
       window.onload = function () {
         this.target = document.querySelector(target);
-        this.boundingRect = this.target.getBoundingClientRect();
-        this.w = this.boundingRect.width;
-        this.h = this.boundingRect.height;
 
         if (!this.target) {
           throw new Error('Cound not find any taget elements with query: ' + target);
         }
 
-        this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
-        this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
-        var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
-        this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
-        this.scene.add(this.imagePlane); //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+        this.target.style.position = 'relative';
+        this.target.style.overflow = 'hidden';
+        this.boundingRect = this.target.getBoundingClientRect();
+        this.w = this.boundingRect.width;
+        this.h = this.boundingRect.height;
 
-        this.squareMax = this.getSquareMax();
-        this.renderer = this.generateRenderer(); //Generate renderers for each target
+        if (!this.vrDisplay) {
+          var uniqueClass = Math.floor(Math.random() * 100000) + 1;
+          uniqueClass = 'gyroCanvas-' + uniqueClass;
+          this.container = document.createElement('div');
+          this.container.classList.add(uniqueClass);
+          this.container.style.height = this.h + 'px';
+          this.container.style.width = this.w + 'px';
+          this.container.style.overflow = 'hidden';
+          this.container.style.position = 'absolute';
+          this.container.style.backgroundSize = 'cover';
+          this.container.style.backgroundPosition = 'center';
+          this.container.style.backgroundImage = "url(".concat(this.imageSource, ")");
+          this.target.prepend(this.container);
 
-        /*
-        this.targets.forEach( function ( target ) {
-            let renderer = this.generateRenderer( target );
-          this.renderers.push( renderer );
-          }.bind( this ));
-        */
-        //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+          if (parallax) {
+            this.enableParallax(uniqueClass, parallaxSpeed);
+          }
 
-        this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-        this.camera.position.z = this.dist;
-
-        if (!this.vrDisplay && parallax) {
-          this.renderer.render(this.scene, this.camera);
-          this.enableParallax(parallaxSpeed);
+          window.addEventListener('resize', function (e) {
+            this.boundingRect = this.target.getBoundingClientRect();
+            this.w = this.boundingRect.width;
+            this.h = this.boundingRect.height;
+            this.container.style.height = this.h + 'px';
+            this.container.style.width = this.w + 'px';
+          }.bind(this));
         } else if (this.vrDisplay) {
+          this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
+          this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
+          var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
+          this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
+          this.scene.add(this.imagePlane);
+          this.squareMax = this.getSquareMax();
+          this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+          this.camera.position.z = this.dist;
+          this.renderer = this.generateRenderer();
           this.vrDisplay.getFrameData(this.frameData);
           var originalOrientation = this.frameData.pose.orientation;
           this.originalOrientation = [originalOrientation[0], originalOrientation[1], originalOrientation[2], originalOrientation[3]];
+          window.addEventListener('resize', this.resize.bind(this));
           this.animate();
         }
       }.bind(this);
@@ -413,7 +389,6 @@ function () {
       console.error(err);
       throw new Error('failed to load image ' + imageSource);
     });
-    window.addEventListener('resize', this.resize.bind(this));
   }
 
   return KaleidoBackground;
