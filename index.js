@@ -15,7 +15,9 @@ import {
   TextureLoader,
   MeshBasicMaterial,
   PlaneGeometry,
-  Mesh
+  Mesh,
+  LinearFilter,
+  RepeatWrapping
 } from 'three';
 
 export default class KaleidoBackground {
@@ -53,7 +55,12 @@ export default class KaleidoBackground {
       if ( this.vrDisplay ) {
 
         this.vrDisplay.getFrameData( this.frameData );
-        this.originalOrientation = [ this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] ] ;
+        this.originalOrientation = [
+          this.frameData.pose.orientation[0],
+          this.frameData.pose.orientation[1],
+          this.frameData.pose.orientation[2],
+          this.frameData.pose.orientation[3]
+        ];
         console.log("Using webvr-polyfill version " + WebVRPolyfill.version + " with configuration: " + JSON.stringify(config));
 
       } else {
@@ -68,61 +75,142 @@ export default class KaleidoBackground {
 
   enableParallax( speed ) {
 
-    this.renderers.forEach( function ( renderer ) {
+    let uniqueClass = Math.floor(Math.random() * 100000) + 1;
+    uniqueClass = 'gyroCanvas-' + uniqueClass;
+    this.renderer.domElement.classList.add( uniqueClass );
 
-      let uniqueClass = Math.floor(Math.random() * 100000) + 1;
-      uniqueClass = 'gyroCanvas-' + uniqueClass;
-      renderer.domElement.classList.add( uniqueClass );
-
-      let parallaxItem = new Relax( `.${uniqueClass}`, {
-        speed: speed,
-        center: true
-      });
-
+    let parallaxItem = new Relax( `.${uniqueClass}`, {
+      speed: speed,
+      center: true
     });
 
   }
 
-  orientationChange ( e ) {
+  getSquareMax() {
 
-    if ( window.innerHeight > window.innerWidth ) {
-      this.orientation = 'portrait';
+    let imageAspect = this.imageWidth / this.imageHeight;
+    let containerAspect = this.w / this.h;
+
+    if ( this.imageOrientation == 'portrait' ) {
+
+      let imageWidth = this.h * imageAspect;
+
+      if ( imageWidth > this.w ) {
+
+        return this.imageHeight;
+
+      } else {
+
+        return imageWidth;
+
+      }
+
+    } else if ( this.imageOrientation == 'landscape' ) {
+
+      let imageHeight = this.w / imageAspect;
+
+      if ( imageHeight > this.h ) {
+
+        return this.h;
+
+      } else {
+
+        return this.imageHeight;
+
+      }
+
     } else {
-      this.orientation = 'landscape';
+      //Orientation is square
+
+      if ( this.w > this.h ) {
+        return this.w;
+      } else {
+        return this.h
+      }
+
     }
+
+    /*
+
+    if ( this.w > this.h ) {
+      //Portrait view
+
+      if ( this.imageOrientation == 'landscape' ) {
+
+        return this.imageHeight;
+
+      } else if ( this.imageOrientation == 'portrait' ) {
+
+        if ( ( this.h - this.imageHeight ) > ( this.w - this.imageWidth) ) {
+          return this.imageHeight;
+        } else {
+          return this.imageWidth;
+        }
+
+      } else if ( this.imageOrientation == 'square' ) {
+
+        if( this.w > this.h ) {
+          return this.imageWidth;
+        } else {
+          return this.imageHeight;
+        }
+
+      }
+
+    } else if ( this.w === this.h ) {
+      //Square view
+
+      if ( this.imageHeight > this.imageWidth ) {
+        return this.imageWidth;
+      } else {
+        return this.imageHeight
+      }
+
+    } else {
+      //Landscape view
+
+      if ( this.imageOrientation == 'landscape' ) {
+
+        if ( )
+
+      }
+
+    }
+
+    */
 
   }
 
   resize( e ) {
 
-    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.boundingRect = this.target.getBoundingClientRect();
+    this.w = this.boundingRect.width;
+    this.h = this.boundingRect.height;
+
+    //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+
+    /*
+    if ( this.w > this.h ) {
+      this.squareMax = this.h < this.squareMax ? this.h : this.squareMax;
+    } else {
+      this.squareMax = this.w < this.squareMax ? this.w : this.squareMax;
+    }
+    */
+
+    this.squareMax = this.getSquareMax();
+
+    this.target.children[0].style.height = this.h + 'px';
+    this.target.children[0].style.width = this.w + 'px';
+
+    this.camera.aspect = this.w / this.h;
     this.camera.updateProjectionMatrix();
 
-    this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
-
-    this.targets.forEach( function ( target, i ) {
-
-      let boundingRect = target.getBoundingClientRect();
-      let w = boundingRect.width;
-      let h = boundingRect.height;
-
-      if ( w > h ) {
-        this.squareMax = h < this.squareMax ? h : this.squareMax;
-      } else {
-        this.squareMax = w < this.squareMax ? w : this.squareMax;
-      }
-
-      target.children[0].style.height = h + 'px';
-      target.children[0].style.width = w + 'px';
-
-      this.renderers[i].setSize( w, h );
-
-    }.bind( this ));
+    this.renderer.setSize( this.w, this.h );
 
     this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
     this.camera.position.z = this.dist;
 
-    console.log( this.dist );
+    this.renderer.render( this.scene, this.camera );
 
   }
 
@@ -141,9 +229,7 @@ export default class KaleidoBackground {
     this.camera.position.y = x * -100;
     this.camera.rotation.z = orientation[2];
 
-    this.renderers.forEach(function ( renderer ) {
-      renderer.render( this.scene, this.camera );
-    }.bind( this ));
+    this.renderer.render( this.scene, this.camera );
 
   }
 
@@ -160,30 +246,19 @@ export default class KaleidoBackground {
     return 2 * Math.tan( vFOV / 2 ) * Math.abs( depth );
   };
 
-  generateRenderer( target ) {
+  generateRenderer() {
 
-    //Get Element height
-    let boundingRect = target.getBoundingClientRect();
-    let w = boundingRect.width;
-    let h = boundingRect.height;
-
-    if ( w > h ) {
-      this.squareMax = h < this.squareMax ? h : this.squareMax;
-    } else {
-      this.squareMax = w < this.squareMax ? w : this.squareMax;
-    }
-
-    let renderer = new WebGLRenderer({ antialias: true, alpha: true });
+    let renderer = new WebGLRenderer({ antialias: true, alpha: false });
     renderer.setClearColor( 0x000000, 0 );
-    renderer.setSize( w, h );
+    renderer.setSize( this.w, this.h );
 
     let container = document.createElement('div');
-    container.style.height = h + 'px';
-    container.style.width = w + 'px';
+    container.style.height = this.h + 'px';
+    container.style.width = this.w + 'px';
     container.style.overflow = 'hidden';
     container.style.position = 'absolute';
     container.appendChild( renderer.domElement );
-    target.prepend( container )
+    this.target.prepend( container )
 
     return renderer;
 
@@ -203,15 +278,7 @@ export default class KaleidoBackground {
     this.enableParallax = this.enableParallax.bind( this );
     this.generateRenderer = this.generateRenderer.bind( this );
     this.getVisibleHeight = this.getVisibleHeight.bind( this );
-    this.orientationChange = this.orientationChange.bind( this );
-
-    this.renderers = [];
-
-    if ( window.innerHeight > window.innerWidth ) {
-      this.orientation = 'portrait';
-    } else {
-      this.orientation = 'landscape';
-    }
+    this.getSquareMax = this.getSquareMax.bind( this );
 
     this.enableAccelerometer();
 
@@ -220,36 +287,61 @@ export default class KaleidoBackground {
     this.loader.load( imageSource, function ( texture ) {
       //onload
 
-      this.material = new MeshBasicMaterial({ map: texture });
+      texture.minFilter = LinearFilter;
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
       this.imageWidth = texture.image.width;
       this.imageHeight = texture.image.height;
+      this.material = new MeshBasicMaterial({ map: texture });
+
+      //Determine image orientation
+      if ( this.imageHeight > this.imageWidth ) {
+
+        this.imageOrientation = 'portrait';
+
+      } else if ( this.imageWidth === this.imageHeight ) {
+
+        this.imageOrientation = 'square';
+
+      } else {
+
+        this.imageOrientation = 'landscape';
+
+      }
 
       //Wait for the page to finish loading so that we can find all the target elements
       window.onload = function () {
 
-        this.targets = document.querySelectorAll( target );
+        this.target = document.querySelector( target );
+        this.boundingRect = this.target.getBoundingClientRect();
+        this.w = this.boundingRect.width;
+        this.h = this.boundingRect.height;
 
-        if ( !this.targets ) {
+        if ( !this.target ) {
           throw new Error('Cound not find any taget elements with query: ' + target);
         }
 
-        this.camera = new PerspectiveCamera( 75, window.innerWidth / window.innerHeight, 0.1, 1500 );
+        this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
         this.scene = new Scene();
 
         let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
         this.imagePlane = new Mesh( g, this.material );
         this.scene.add( this.imagePlane );
 
-        //
-        this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+        //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
+
+        this.squareMax = this.getSquareMax();
+        this.renderer = this.generateRenderer();
 
         //Generate renderers for each target
+        /*
         this.targets.forEach( function ( target ) {
 
           let renderer = this.generateRenderer( target );
           this.renderers.push( renderer );
 
         }.bind( this ));
+        */
 
         //this.squareMax = this.imageWidth < this.imageHeight ? this.imageWidth : this.imageHeight;
         this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
@@ -257,10 +349,7 @@ export default class KaleidoBackground {
 
         if ( !this.vrDisplay && parallax ) {
 
-          this.renderers.forEach(function ( renderer ) {
-            renderer.render( this.scene, this.camera );
-          }.bind( this ));
-
+          this.renderer.render( this.scene, this.camera );
           this.enableParallax( parallaxSpeed );
 
         } else if ( this.vrDisplay ) {
@@ -293,7 +382,6 @@ export default class KaleidoBackground {
     });
 
     window.addEventListener('resize', this.resize.bind( this ));
-    window.addEventListener('orientationchange', this.orientationChange.bind( this ));
 
   }
 

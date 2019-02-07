@@ -4,12 +4,12 @@ const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 module.exports = {
     "mode": "development",
     "entry": {
-      "kaleidoBackground": "./entry.js",
-      "kaleidoBackground.min": "./entry.js",
+      "kaleidoBackground": path.join(__dirname, "entry.js"),
+      "kaleidoBackground.min": path.join(__dirname, "entry.js"),
     },
     "devtool": "source-map",
     "output": {
-        "path": __dirname+'/dist',
+        "path": path.join(__dirname, '/dist'),
         "filename": "[name].js",
         "libraryTarget": "var",
         "library": "KaleidoBackground"
