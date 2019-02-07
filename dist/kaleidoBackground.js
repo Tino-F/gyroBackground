@@ -348,6 +348,7 @@ function () {
           this.container.classList.add(uniqueClass);
           this.container.style.height = this.h + 'px';
           this.container.style.width = this.w + 'px';
+          this.container.style.top = '-25px;';
           this.container.style.overflow = 'hidden';
           this.container.style.position = 'absolute';
           this.container.style.backgroundSize = 'cover';
