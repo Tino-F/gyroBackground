@@ -201,7 +201,7 @@ export default class KaleidoBackground {
 
   }
 
-  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2 } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2 } ) {
+  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2, height = false, width = false } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2, height: false, width: false } ) {
 
     if ( !target ) {
       throw new Error('No target was specified.');
@@ -276,7 +276,7 @@ export default class KaleidoBackground {
           this.container.classList.add( uniqueClass );
           this.container.style.height = this.h + 'px';
           this.container.style.width = this.w + 'px';
-          this.container.style.top = '-25px;'
+          //this.container.style.top = '-25px;'
           this.container.style.overflow = 'hidden';
           this.container.style.position = 'absolute';
           this.container.style.backgroundSize = 'cover';
@@ -286,18 +286,45 @@ export default class KaleidoBackground {
 
           if ( parallax ) {
             this.enableParallax( uniqueClass, parallaxSpeed );
+
+            const resizeParallax = function ( e ) {
+
+              this.boundingRect = this.target.getBoundingClientRect();
+              this.w = this.boundingRect.width;
+              this.h = this.boundingRect.height;
+
+              let h;
+
+              if ( this.h < window.innerHeight ) {
+
+                h = window.innerHeight;
+
+              } else {
+
+                h = this.h;
+
+              }
+
+              //vertical center margin
+              let vm = ( h - this.h ) / 2;
+
+              this.container.style.top = -vm + 'px';
+              this.container.style.height = h + 'px';
+              this.container.style.width = this.w + 'px';
+
+            }.bind( this );
+
+            resizeParallax();
+
+            window.addEventListener('resize', resizeParallax);
+
+          } else {
+
+            this.target.style.backgroundSize = 'cover';
+            this.target.style.backgroundPosition = 'center';
+            this.target.style.backgroundImage = `url(${this.imageSource})`;
+
           }
-
-          window.addEventListener('resize', function ( e ) {
-
-            this.boundingRect = this.target.getBoundingClientRect();
-            this.w = this.boundingRect.width;
-            this.h = this.boundingRect.height;
-
-            this.container.style.height = this.h + 'px';
-            this.container.style.width = this.w + 'px';
-
-          }.bind( this ));
 
         } else if ( this.vrDisplay ) {
 

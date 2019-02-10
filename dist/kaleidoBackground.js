@@ -276,14 +276,20 @@ function () {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
       sensitivity: 0.5,
       parallax: false,
-      parallaxSpeed: -2
+      parallaxSpeed: -2,
+      height: false,
+      width: false
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
         _ref$parallax = _ref.parallax,
         parallax = _ref$parallax === void 0 ? false : _ref$parallax,
         _ref$parallaxSpeed = _ref.parallaxSpeed,
-        parallaxSpeed = _ref$parallaxSpeed === void 0 ? -2 : _ref$parallaxSpeed;
+        parallaxSpeed = _ref$parallaxSpeed === void 0 ? -2 : _ref$parallaxSpeed,
+        _ref$height = _ref.height,
+        height = _ref$height === void 0 ? false : _ref$height,
+        _ref$width = _ref.width,
+        width = _ref$width === void 0 ? false : _ref$width;
 
     _classCallCheck(this, KaleidoBackground);
 
@@ -347,8 +353,8 @@ function () {
           this.container = document.createElement('div');
           this.container.classList.add(uniqueClass);
           this.container.style.height = this.h + 'px';
-          this.container.style.width = this.w + 'px';
-          this.container.style.top = '-25px;';
+          this.container.style.width = this.w + 'px'; //this.container.style.top = '-25px;'
+
           this.container.style.overflow = 'hidden';
           this.container.style.position = 'absolute';
           this.container.style.backgroundSize = 'cover';
@@ -358,15 +364,33 @@ function () {
 
           if (parallax) {
             this.enableParallax(uniqueClass, parallaxSpeed);
-          }
 
-          window.addEventListener('resize', function (e) {
-            this.boundingRect = this.target.getBoundingClientRect();
-            this.w = this.boundingRect.width;
-            this.h = this.boundingRect.height;
-            this.container.style.height = this.h + 'px';
-            this.container.style.width = this.w + 'px';
-          }.bind(this));
+            var resizeParallax = function (e) {
+              this.boundingRect = this.target.getBoundingClientRect();
+              this.w = this.boundingRect.width;
+              this.h = this.boundingRect.height;
+              var h;
+
+              if (this.h < window.innerHeight) {
+                h = window.innerHeight;
+              } else {
+                h = this.h;
+              } //vertical center margin
+
+
+              var vm = (h - this.h) / 2;
+              this.container.style.top = -vm + 'px';
+              this.container.style.height = h + 'px';
+              this.container.style.width = this.w + 'px';
+            }.bind(this);
+
+            resizeParallax();
+            window.addEventListener('resize', resizeParallax);
+          } else {
+            this.target.style.backgroundSize = 'cover';
+            this.target.style.backgroundPosition = 'center';
+            this.target.style.backgroundImage = "url(".concat(this.imageSource, ")");
+          }
         } else if (this.vrDisplay) {
           this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
           this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
