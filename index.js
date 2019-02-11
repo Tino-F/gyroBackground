@@ -317,6 +317,7 @@ export default class KaleidoBackground {
 
           if ( parallax ) {
             this.enableParallax( uniqueClass, parallaxSpeed );
+            this.state = 'parallax';
 
             const resizeParallax = function ( e ) {
 
@@ -351,6 +352,7 @@ export default class KaleidoBackground {
 
           } else {
 
+            this.state = 'none';
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = `url(${this.imageSource})`;
@@ -359,6 +361,7 @@ export default class KaleidoBackground {
 
         } else if ( this.vrDisplay ) {
 
+          this.state = 'gyro';
           this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
           this.scene = new Scene();
 

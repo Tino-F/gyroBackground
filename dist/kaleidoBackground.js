@@ -391,6 +391,7 @@ function () {
 
           if (parallax) {
             this.enableParallax(uniqueClass, parallaxSpeed);
+            this.state = 'parallax';
 
             var resizeParallax = function (e) {
               this.boundingRect = this.target.getBoundingClientRect();
@@ -414,11 +415,13 @@ function () {
             resizeParallax();
             window.addEventListener('resize', resizeParallax);
           } else {
+            this.state = 'none';
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = "url(".concat(this.imageSource, ")");
           }
         } else if (this.vrDisplay) {
+          this.state = 'gyro';
           this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
           this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
