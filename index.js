@@ -145,7 +145,7 @@ export default class KaleidoBackground {
     this.renderer.setSize( this.w, this.h );
 
     this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-    this.camera.position.z = this.dist;
+    this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
 
     this.renderer.render( this.scene, this.camera );
 
@@ -158,13 +158,15 @@ export default class KaleidoBackground {
     this.vrDisplay.getFrameData( this.frameData );
     let orientation = this.frameData.pose.orientation;
 
-    let x = this.originalOrientation[0] - orientation[0];
-    let y = this.originalOrientation[1] - orientation[1];
-    let z = this.originalOrientation[2] - orientation[2];
+    //let x = this.originalOrientation[0] - orientation[0];
+    //let y = this.originalOrientation[1] - orientation[1];
+    //let z = this.originalOrientation[2] - orientation[2];
 
-    this.camera.position.x = y * 100;
-    this.camera.position.y = x * -100;
-    this.camera.rotation.z = orientation[2];
+
+
+    this.camera.position.x = ( orientation[1] * this.sensitivity ) * -100;
+    this.camera.position.y = ( orientation[0] * this.sensitivity ) * 100;
+    this.camera.rotation.z = orientation[2] * 0.26;
 
     this.renderer.render( this.scene, this.camera );
 
@@ -185,7 +187,7 @@ export default class KaleidoBackground {
 
   generateRenderer() {
 
-    let renderer = new WebGLRenderer({ antialias: true, alpha: false });
+    let renderer = new WebGLRenderer({ antialias: true, alpha: true });
     renderer.setClearColor( 0x000000, 0 );
     renderer.setSize( this.w, this.h );
 
@@ -198,6 +200,50 @@ export default class KaleidoBackground {
     this.target.prepend( container )
 
     return renderer;
+
+  }
+
+  handleStaticImage( imageSource, cb ) {
+
+    let loader = new TextureLoader();
+
+    loader.load( imageSource, function ( texture ) {
+      //onload
+
+      texture.minFilter = LinearFilter;
+      texture.wrapS = RepeatWrapping;
+      texture.wrapT = RepeatWrapping;
+      this.imageWidth = texture.image.width;
+      this.imageHeight = texture.image.height;
+      this.material = new MeshBasicMaterial({ map: texture });
+
+      //Determine image orientation
+      if ( this.imageHeight > this.imageWidth ) {
+        this.imageOrientation = 'portrait';
+      } else if ( this.imageWidth === this.imageHeight ) {
+        this.imageOrientation = 'square';
+      } else {
+        this.imageOrientation = 'landscape';
+      }
+
+      cb( texture );
+
+    }.bind( this ),
+    //progress callback not yet supported
+    undefined,
+    function ( err ) {
+      //onError
+
+      console.error( err );
+      throw new Error('failed to load image ' + imageSource);
+
+    });
+
+  }
+
+  handleVideo( cb ) {
+
+    throw new Error('not written yet :D');
 
   }
 
@@ -225,32 +271,17 @@ export default class KaleidoBackground {
 
     this.enableAccelerometer();
 
-    this.loader = new TextureLoader();
+    let fileTypeRegex = /\.[0-9a-z]+$/i;
+    this.fileType = fileTypeRegex.exec( imageSource )[0];
 
-    this.loader.load( imageSource, function ( texture ) {
-      //onload
+    if ( this.fileType === '.gif' ) {
+      //User selected a gif
+      this.loader = this.handleVideo.bind( this );
+    } else {
+      this.loader = this.handleStaticImage.bind( this );
+    }
 
-      texture.minFilter = LinearFilter;
-      texture.wrapS = RepeatWrapping;
-      texture.wrapT = RepeatWrapping;
-      this.imageWidth = texture.image.width;
-      this.imageHeight = texture.image.height;
-      this.material = new MeshBasicMaterial({ map: texture });
-
-      //Determine image orientation
-      if ( this.imageHeight > this.imageWidth ) {
-
-        this.imageOrientation = 'portrait';
-
-      } else if ( this.imageWidth === this.imageHeight ) {
-
-        this.imageOrientation = 'square';
-
-      } else {
-
-        this.imageOrientation = 'landscape';
-
-      }
+    this.loader( imageSource, function() {
 
       //Wait for the page to finish loading so that we can find all the target elements
       window.onload = function () {
@@ -337,7 +368,7 @@ export default class KaleidoBackground {
 
           this.squareMax = this.getSquareMax();
           this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-          this.camera.position.z = this.dist;
+          this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
 
           this.renderer = this.generateRenderer();
 
@@ -358,16 +389,7 @@ export default class KaleidoBackground {
 
       }.bind( this );
 
-    }.bind( this ),
-    //progress callback not yet supported
-    undefined,
-    function ( err ) {
-      //onError
-
-      console.error( err );
-      throw new Error('failed to load image ' + imageSource);
-
-    });
+    }.bind( this ));
 
   }
 

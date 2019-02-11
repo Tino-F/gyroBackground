@@ -224,7 +224,7 @@ function () {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.w, this.h);
       this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-      this.camera.position.z = this.dist;
+      this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -232,13 +232,13 @@ function () {
     value: function animate() {
       requestAnimationFrame(this.animate);
       this.vrDisplay.getFrameData(this.frameData);
-      var orientation = this.frameData.pose.orientation;
-      var x = this.originalOrientation[0] - orientation[0];
-      var y = this.originalOrientation[1] - orientation[1];
-      var z = this.originalOrientation[2] - orientation[2];
-      this.camera.position.x = y * 100;
-      this.camera.position.y = x * -100;
-      this.camera.rotation.z = orientation[2];
+      var orientation = this.frameData.pose.orientation; //let x = this.originalOrientation[0] - orientation[0];
+      //let y = this.originalOrientation[1] - orientation[1];
+      //let z = this.originalOrientation[2] - orientation[2];
+
+      this.camera.position.x = orientation[1] * this.sensitivity * -100;
+      this.camera.position.y = orientation[0] * this.sensitivity * 100;
+      this.camera.rotation.z = orientation[2] * 0.26;
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -257,7 +257,7 @@ function () {
     value: function generateRenderer() {
       var renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
         antialias: true,
-        alpha: false
+        alpha: true
       });
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(this.w, this.h);
@@ -269,6 +269,42 @@ function () {
       container.appendChild(renderer.domElement);
       this.target.prepend(container);
       return renderer;
+    }
+  }, {
+    key: "handleStaticImage",
+    value: function handleStaticImage(imageSource, cb) {
+      var loader = new three__WEBPACK_IMPORTED_MODULE_2__["TextureLoader"]();
+      loader.load(imageSource, function (texture) {
+        //onload
+        texture.minFilter = three__WEBPACK_IMPORTED_MODULE_2__["LinearFilter"];
+        texture.wrapS = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
+        texture.wrapT = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
+        this.imageWidth = texture.image.width;
+        this.imageHeight = texture.image.height;
+        this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
+          map: texture
+        }); //Determine image orientation
+
+        if (this.imageHeight > this.imageWidth) {
+          this.imageOrientation = 'portrait';
+        } else if (this.imageWidth === this.imageHeight) {
+          this.imageOrientation = 'square';
+        } else {
+          this.imageOrientation = 'landscape';
+        }
+
+        cb(texture);
+      }.bind(this), //progress callback not yet supported
+      undefined, function (err) {
+        //onError
+        console.error(err);
+        throw new Error('failed to load image ' + imageSource);
+      });
+    }
+  }, {
+    key: "handleVideo",
+    value: function handleVideo(cb) {
+      throw new Error('not written yet :D');
     }
   }]);
 
@@ -313,27 +349,18 @@ function () {
     this.getVisibleHeight = this.getVisibleHeight.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
     this.enableAccelerometer();
-    this.loader = new three__WEBPACK_IMPORTED_MODULE_2__["TextureLoader"]();
-    this.loader.load(imageSource, function (texture) {
-      //onload
-      texture.minFilter = three__WEBPACK_IMPORTED_MODULE_2__["LinearFilter"];
-      texture.wrapS = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
-      texture.wrapT = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
-      this.imageWidth = texture.image.width;
-      this.imageHeight = texture.image.height;
-      this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
-        map: texture
-      }); //Determine image orientation
+    var fileTypeRegex = /\.[0-9a-z]+$/i;
+    this.fileType = fileTypeRegex.exec(imageSource)[0];
 
-      if (this.imageHeight > this.imageWidth) {
-        this.imageOrientation = 'portrait';
-      } else if (this.imageWidth === this.imageHeight) {
-        this.imageOrientation = 'square';
-      } else {
-        this.imageOrientation = 'landscape';
-      } //Wait for the page to finish loading so that we can find all the target elements
+    if (this.fileType === '.gif') {
+      //User selected a gif
+      this.loader = this.handleVideo.bind(this);
+    } else {
+      this.loader = this.handleStaticImage.bind(this);
+    }
 
-
+    this.loader(imageSource, function () {
+      //Wait for the page to finish loading so that we can find all the target elements
       window.onload = function () {
         this.target = document.querySelector(target);
 
@@ -399,7 +426,7 @@ function () {
           this.scene.add(this.imagePlane);
           this.squareMax = this.getSquareMax();
           this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-          this.camera.position.z = this.dist;
+          this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
           this.renderer = this.generateRenderer();
           this.vrDisplay.getFrameData(this.frameData);
           var originalOrientation = this.frameData.pose.orientation;
@@ -408,12 +435,7 @@ function () {
           this.animate();
         }
       }.bind(this);
-    }.bind(this), //progress callback not yet supported
-    undefined, function (err) {
-      //onError
-      console.error(err);
-      throw new Error('failed to load image ' + imageSource);
-    });
+    }.bind(this));
   }
 
   return KaleidoBackground;
