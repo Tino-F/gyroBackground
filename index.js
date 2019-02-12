@@ -116,12 +116,19 @@ export default class GyroBackground {
       }
 
     } else {
-      //Orientation is square
+      //Image orientation is square
+
+      let imageWidth = this.h * imageAspect;
 
       if ( this.w > this.h ) {
-        return this.imageWidth;
+        //Phone orientation is landscape
+
+        return imageWidth;
+
       } else {
-        return this.imageHeight
+
+        return this.h
+
       }
 
     }

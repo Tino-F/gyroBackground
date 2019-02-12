@@ -203,11 +203,14 @@ function () {
           return this.imageHeight;
         }
       } else {
-        //Orientation is square
+        //Image orientation is square
+        var _imageWidth = this.h * imageAspect;
+
         if (this.w > this.h) {
-          return this.imageWidth;
+          //Phone orientation is landscape
+          return _imageWidth;
         } else {
-          return this.imageHeight;
+          return this.h;
         }
       }
     }
