@@ -238,7 +238,7 @@ function () {
 
       this.camera.position.x = orientation[1] * this.sensitivity * -100;
       this.camera.position.y = orientation[0] * this.sensitivity * 100;
-      this.camera.rotation.z = orientation[2] * 0.26;
+      this.camera.rotation.z = orientation[2] * this.sensitivity / 3;
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -277,13 +277,8 @@ function () {
       loader.load(imageSource, function (texture) {
         //onload
         texture.minFilter = three__WEBPACK_IMPORTED_MODULE_2__["LinearFilter"];
-        texture.wrapS = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
-        texture.wrapT = three__WEBPACK_IMPORTED_MODULE_2__["RepeatWrapping"];
         this.imageWidth = texture.image.width;
-        this.imageHeight = texture.image.height;
-        this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
-          map: texture
-        }); //Determine image orientation
+        this.imageHeight = texture.image.height; //Determine image orientation
 
         if (this.imageHeight > this.imageWidth) {
           this.imageOrientation = 'portrait';
@@ -359,7 +354,7 @@ function () {
       this.loader = this.handleStaticImage.bind(this);
     }
 
-    this.loader(imageSource, function () {
+    this.loader(imageSource, function (texture) {
       //Wait for the page to finish loading so that we can find all the target elements
       window.onload = function () {
         this.target = document.querySelector(target);
@@ -424,13 +419,17 @@ function () {
           this.state = 'gyro';
           this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
           this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
+          this.renderer = this.generateRenderer();
+          texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+          this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
+            map: texture
+          });
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
           this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
           this.scene.add(this.imagePlane);
           this.squareMax = this.getSquareMax();
           this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
           this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
-          this.renderer = this.generateRenderer();
           this.vrDisplay.getFrameData(this.frameData);
           var originalOrientation = this.frameData.pose.orientation;
           this.originalOrientation = [originalOrientation[0], originalOrientation[1], originalOrientation[2], originalOrientation[3]];

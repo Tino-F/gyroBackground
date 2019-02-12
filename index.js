@@ -166,7 +166,7 @@ export default class KaleidoBackground {
 
     this.camera.position.x = ( orientation[1] * this.sensitivity ) * -100;
     this.camera.position.y = ( orientation[0] * this.sensitivity ) * 100;
-    this.camera.rotation.z = orientation[2] * 0.26;
+    this.camera.rotation.z = orientation[2] * this.sensitivity/3;
 
     this.renderer.render( this.scene, this.camera );
 
@@ -211,11 +211,8 @@ export default class KaleidoBackground {
       //onload
 
       texture.minFilter = LinearFilter;
-      texture.wrapS = RepeatWrapping;
-      texture.wrapT = RepeatWrapping;
       this.imageWidth = texture.image.width;
       this.imageHeight = texture.image.height;
-      this.material = new MeshBasicMaterial({ map: texture });
 
       //Determine image orientation
       if ( this.imageHeight > this.imageWidth ) {
@@ -281,7 +278,7 @@ export default class KaleidoBackground {
       this.loader = this.handleStaticImage.bind( this );
     }
 
-    this.loader( imageSource, function() {
+    this.loader( imageSource, function( texture ) {
 
       //Wait for the page to finish loading so that we can find all the target elements
       window.onload = function () {
@@ -362,18 +359,21 @@ export default class KaleidoBackground {
         } else if ( this.vrDisplay ) {
 
           this.state = 'gyro';
+
           this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
           this.scene = new Scene();
+          this.renderer = this.generateRenderer();
 
+          texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+          this.material = new MeshBasicMaterial({ map: texture });
           let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
           this.imagePlane = new Mesh( g, this.material );
+
           this.scene.add( this.imagePlane );
 
           this.squareMax = this.getSquareMax();
           this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
           this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
-
-          this.renderer = this.generateRenderer();
 
           this.vrDisplay.getFrameData( this.frameData );
           let originalOrientation = this.frameData.pose.orientation;
