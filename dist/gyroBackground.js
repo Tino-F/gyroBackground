@@ -1,4 +1,4 @@
-var KaleidoBackground =
+var GyroBackground =
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
@@ -107,7 +107,7 @@ module.exports = __webpack_require__(/*! ./index.js */ "./index.js").default;
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
-/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return KaleidoBackground; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GyroBackground; });
 /* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! webvr-polyfill */ "./node_modules/webvr-polyfill/build/webvr-polyfill.js");
 /* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rellax */ "./node_modules/rellax/rellax.js");
@@ -130,10 +130,10 @@ Sensitivity
 
 
 
-var KaleidoBackground =
+var GyroBackground =
 /*#__PURE__*/
 function () {
-  _createClass(KaleidoBackground, [{
+  _createClass(GyroBackground, [{
     key: "enableAccelerometer",
     value: function enableAccelerometer() {
       var config = function () {
@@ -303,7 +303,7 @@ function () {
     }
   }]);
 
-  function KaleidoBackground(target, imageSource) {
+  function GyroBackground(target, imageSource) {
     var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
       sensitivity: 0.5,
       parallax: false,
@@ -322,7 +322,7 @@ function () {
         _ref$width = _ref.width,
         width = _ref$width === void 0 ? false : _ref$width;
 
-    _classCallCheck(this, KaleidoBackground);
+    _classCallCheck(this, GyroBackground);
 
     if (!target) {
       throw new Error('No target was specified.');
@@ -422,7 +422,8 @@ function () {
           this.renderer = this.generateRenderer();
           texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
           this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
-            map: texture
+            map: texture,
+            transparent: true
           });
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
           this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
@@ -440,7 +441,7 @@ function () {
     }.bind(this));
   }
 
-  return KaleidoBackground;
+  return GyroBackground;
 }();
 
 
@@ -52554,4 +52555,4 @@ return src;
 /***/ })
 
 /******/ });
-//# sourceMappingURL=kaleidoBackground.js.map
+//# sourceMappingURL=gyroBackground.js.map

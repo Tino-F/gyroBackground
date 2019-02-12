@@ -20,7 +20,7 @@ import {
   RepeatWrapping
 } from 'three';
 
-export default class KaleidoBackground {
+export default class GyroBackground {
 
   enableAccelerometer() {
 
@@ -365,7 +365,7 @@ export default class KaleidoBackground {
           this.renderer = this.generateRenderer();
 
           texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-          this.material = new MeshBasicMaterial({ map: texture });
+          this.material = new MeshBasicMaterial({ map: texture, transparent: true });
           let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
           this.imagePlane = new Mesh( g, this.material );
 
@@ -383,7 +383,7 @@ export default class KaleidoBackground {
             originalOrientation[1],
             originalOrientation[2],
             originalOrientation[3]
-          ]
+          ];
 
           window.addEventListener('resize', this.resize.bind( this ));
           this.animate();
