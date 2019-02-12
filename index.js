@@ -121,9 +121,9 @@ export default class GyroBackground {
       let imageWidth = this.h * imageAspect;
 
       if ( this.w > this.h ) {
-        //Phone orientation is landscape
+        //Container orientation is landscape
 
-        return imageWidth;
+        return this.h;
 
       } else {
 

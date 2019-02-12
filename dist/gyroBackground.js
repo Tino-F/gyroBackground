@@ -207,8 +207,8 @@ function () {
         var _imageWidth = this.h * imageAspect;
 
         if (this.w > this.h) {
-          //Phone orientation is landscape
-          return _imageWidth;
+          //Container orientation is landscape
+          return this.h;
         } else {
           return this.h;
         }
