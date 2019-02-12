@@ -348,7 +348,7 @@ export default class GyroBackground {
 
           } else {
 
-            this.state = 'none';
+            this.state = 'idle';
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = `url(${this.imageSource})`;
