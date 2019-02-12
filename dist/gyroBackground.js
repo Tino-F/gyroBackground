@@ -205,9 +205,9 @@ function () {
       } else {
         //Orientation is square
         if (this.w > this.h) {
-          return this.w;
+          return this.imageWidth;
         } else {
-          return this.h;
+          return this.imageHeight;
         }
       }
     }
@@ -238,7 +238,7 @@ function () {
 
       this.camera.position.x = orientation[1] * this.sensitivity * -100;
       this.camera.position.y = orientation[0] * this.sensitivity * 100;
-      this.camera.rotation.z = orientation[2] * this.sensitivity / 3;
+      this.camera.rotation.z = orientation[2] * (0.3 * this.sensitivity / 3);
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -409,7 +409,7 @@ function () {
             resizeParallax();
             window.addEventListener('resize', resizeParallax);
           } else {
-            this.state = 'none';
+            this.state = 'idle';
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = "url(".concat(this.imageSource, ")");
