@@ -356,7 +356,7 @@ function () {
 
     this.loader(imageSource, function (texture) {
       //Wait for the page to finish loading so that we can find all the target elements
-      window.onload = function () {
+      window.addEventListener('load', function () {
         this.target = document.querySelector(target);
 
         if (!this.target) {
@@ -370,21 +370,20 @@ function () {
         this.h = this.boundingRect.height;
 
         if (!this.vrDisplay) {
-          var uniqueClass = Math.floor(Math.random() * 100000) + 1;
-          uniqueClass = 'gyroCanvas-' + uniqueClass;
-          this.container = document.createElement('div');
-          this.container.classList.add(uniqueClass);
-          this.container.style.height = this.h + 'px';
-          this.container.style.width = this.w + 'px'; //this.container.style.top = '-25px;'
-
-          this.container.style.overflow = 'hidden';
-          this.container.style.position = 'absolute';
-          this.container.style.backgroundSize = 'cover';
-          this.container.style.backgroundPosition = 'center';
-          this.container.style.backgroundImage = "url(".concat(this.imageSource, ")");
-          this.target.prepend(this.container);
-
           if (parallax) {
+            var uniqueClass = Math.floor(Math.random() * 100000) + 1;
+            uniqueClass = 'gyroCanvas-' + uniqueClass;
+            this.container = document.createElement('div');
+            this.container.classList.add(uniqueClass);
+            this.container.style.height = this.h + 'px';
+            this.container.style.width = this.w + 'px'; //this.container.style.top = '-25px;'
+
+            this.container.style.overflow = 'hidden';
+            this.container.style.position = 'absolute';
+            this.container.style.backgroundSize = 'cover';
+            this.container.style.backgroundPosition = 'center';
+            this.container.style.backgroundImage = "url(".concat(this.imageSource, ")");
+            this.target.prepend(this.container);
             this.enableParallax(uniqueClass, parallaxSpeed);
             this.state = 'parallax';
 
@@ -437,7 +436,7 @@ function () {
           window.addEventListener('resize', this.resize.bind(this));
           this.animate();
         }
-      }.bind(this);
+      }.bind(this));
     }.bind(this));
   }
 

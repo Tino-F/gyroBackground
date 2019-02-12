@@ -162,8 +162,6 @@ export default class GyroBackground {
     //let y = this.originalOrientation[1] - orientation[1];
     //let z = this.originalOrientation[2] - orientation[2];
 
-
-
     this.camera.position.x = ( orientation[1] * this.sensitivity ) * -100;
     this.camera.position.y = ( orientation[0] * this.sensitivity ) * 100;
     this.camera.rotation.z = orientation[2] * this.sensitivity/3;
@@ -281,7 +279,7 @@ export default class GyroBackground {
     this.loader( imageSource, function( texture ) {
 
       //Wait for the page to finish loading so that we can find all the target elements
-      window.onload = function () {
+      window.addEventListener( 'load', function() {
 
         this.target = document.querySelector( target );
 
@@ -298,21 +296,22 @@ export default class GyroBackground {
 
         if ( !this.vrDisplay ) {
 
-          let uniqueClass = Math.floor(Math.random() * 100000) + 1;
-          uniqueClass = 'gyroCanvas-' + uniqueClass;
-          this.container = document.createElement('div');
-          this.container.classList.add( uniqueClass );
-          this.container.style.height = this.h + 'px';
-          this.container.style.width = this.w + 'px';
-          //this.container.style.top = '-25px;'
-          this.container.style.overflow = 'hidden';
-          this.container.style.position = 'absolute';
-          this.container.style.backgroundSize = 'cover';
-          this.container.style.backgroundPosition = 'center';
-          this.container.style.backgroundImage = `url(${this.imageSource})`;
-          this.target.prepend( this.container );
-
           if ( parallax ) {
+
+            let uniqueClass = Math.floor(Math.random() * 100000) + 1;
+            uniqueClass = 'gyroCanvas-' + uniqueClass;
+            this.container = document.createElement('div');
+            this.container.classList.add( uniqueClass );
+            this.container.style.height = this.h + 'px';
+            this.container.style.width = this.w + 'px';
+            //this.container.style.top = '-25px;'
+            this.container.style.overflow = 'hidden';
+            this.container.style.position = 'absolute';
+            this.container.style.backgroundSize = 'cover';
+            this.container.style.backgroundPosition = 'center';
+            this.container.style.backgroundImage = `url(${this.imageSource})`;
+            this.target.prepend( this.container );
+
             this.enableParallax( uniqueClass, parallaxSpeed );
             this.state = 'parallax';
 
@@ -390,7 +389,7 @@ export default class GyroBackground {
 
         }
 
-      }.bind( this );
+      }.bind( this ));
 
     }.bind( this ));
 
