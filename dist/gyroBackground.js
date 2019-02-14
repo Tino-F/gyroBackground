@@ -217,6 +217,15 @@ function () {
   }, {
     key: "resize",
     value: function resize(e) {
+      //Update sensitivity before zoom
+      if (window.innerHeight < window.innerWidth) {
+        this.phoneOrientation = 'landscape';
+      } else {
+        this.phoneOrientation = 'portrait';
+      }
+
+      this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
+      this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
       this.boundingRect = this.target.getBoundingClientRect();
       this.w = this.boundingRect.width;
       this.h = this.boundingRect.height;
@@ -228,6 +237,7 @@ function () {
       this.renderer.setSize(this.w, this.h);
       this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
       this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
+      this.camera.position.z -= this.zoom;
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -312,8 +322,11 @@ function () {
       sensitivity: 0.5,
       parallax: false,
       parallaxSpeed: -2,
-      height: false,
-      width: false
+      portraitSensitivity: portraitSensitivity,
+      landscapeSensitivity: landscapeSensitivity,
+      zoom: 0,
+      portraitZoom: portraitZoom,
+      landscapeZoom: landscapeZoom
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
@@ -321,22 +334,50 @@ function () {
         parallax = _ref$parallax === void 0 ? false : _ref$parallax,
         _ref$parallaxSpeed = _ref.parallaxSpeed,
         parallaxSpeed = _ref$parallaxSpeed === void 0 ? -2 : _ref$parallaxSpeed,
-        _ref$height = _ref.height,
-        height = _ref$height === void 0 ? false : _ref$height,
-        _ref$width = _ref.width,
-        width = _ref$width === void 0 ? false : _ref$width;
+        portraitSensitivity = _ref.portraitSensitivity,
+        landscapeSensitivity = _ref.landscapeSensitivity,
+        _ref$zoom = _ref.zoom,
+        zoom = _ref$zoom === void 0 ? 0 : _ref$zoom,
+        portraitZoom = _ref.portraitZoom,
+        landscapeZoom = _ref.landscapeZoom;
 
     _classCallCheck(this, GyroBackground);
 
-    if (!target) {
+    /*
+      Params:
+        target,
+        imageSource,
+        sensitivity,
+        landscapeSensitivity,
+        portraitSensitivity,
+        zoom,
+        portraitZoom,
+        landscapeZoom,
+        parallax,
+        parallaxSpeed
+    */
+    if (!target || typeof target !== 'string') {
       throw new Error('No target was specified.');
     }
 
-    if (!imageSource) {
+    if (!imageSource || typeof imageSource !== 'string') {
       throw new Error('No image was chosen.');
     }
 
-    this.sensitivity = sensitivity;
+    if (window.innerHeight < window.innerWidth) {
+      this.phoneOrientation = 'landscape';
+    } else {
+      this.phoneOrientation = 'portrait';
+    }
+
+    this.portraitSensitivity = typeof portraitSensitivity === 'undefined' ? sensitivity : portraitSensitivity;
+    this.landscapeSensitivity = typeof landscapeSensitivity === 'undefined' ? sensitivity : landscapeSensitivity;
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
+    console.log("landscape sensitivity: ".concat(this.landscapeSensitivity, ", portrait sensitivity: ").concat(this.portraitSensitivity));
+    this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
+    this.landscapeZoom = typeof landscapeZoom === 'undefined' ? zoom : landscapeZoom;
+    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+    console.log("landscape zoom: ".concat(this.landscapeZoom, ", portrait zoom: ").concat(this.portraitZoom));
     this.imageSource = imageSource;
     this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];

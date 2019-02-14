@@ -137,6 +137,17 @@ export default class GyroBackground {
 
   resize( e ) {
 
+    //Update sensitivity before zoom
+
+    if ( window.innerHeight < window.innerWidth ) {
+      this.phoneOrientation = 'landscape';
+    } else {
+      this.phoneOrientation = 'portrait';
+    }
+
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
+    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+
     this.boundingRect = this.target.getBoundingClientRect();
     this.w = this.boundingRect.width;
     this.h = this.boundingRect.height;
@@ -153,6 +164,7 @@ export default class GyroBackground {
 
     this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
     this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
+    this.camera.position.z -= this.zoom;
 
     this.renderer.render( this.scene, this.camera );
 
@@ -250,17 +262,46 @@ export default class GyroBackground {
 
   }
 
-  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2, height = false, width = false } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2, height: false, width: false } ) {
+  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2, portraitSensitivity, landscapeSensitivity, zoom = 0, portraitZoom, landscapeZoom } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2, portraitSensitivity, landscapeSensitivity, zoom: 0, portraitZoom, landscapeZoom } ) {
 
-    if ( !target ) {
+    /*
+      Params:
+        target,
+        imageSource,
+        sensitivity,
+        landscapeSensitivity,
+        portraitSensitivity,
+        zoom,
+        portraitZoom,
+        landscapeZoom,
+        parallax,
+        parallaxSpeed
+    */
+
+    if ( !target || typeof(target) !== 'string' ) {
       throw new Error('No target was specified.');
     }
 
-    if ( !imageSource ) {
+    if ( !imageSource || typeof(imageSource) !== 'string' ) {
       throw new Error('No image was chosen.');
     }
 
-    this.sensitivity = sensitivity;
+    if ( window.innerHeight < window.innerWidth ) {
+      this.phoneOrientation = 'landscape';
+    } else {
+      this.phoneOrientation = 'portrait';
+    }
+
+    this.portraitSensitivity = typeof(portraitSensitivity) === 'undefined' ? sensitivity : portraitSensitivity;
+    this.landscapeSensitivity = typeof(landscapeSensitivity) === 'undefined' ? sensitivity : landscapeSensitivity;
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
+    console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
+
+    this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
+    this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? zoom : landscapeZoom;
+    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+    console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
+
     this.imageSource = imageSource;
     this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];
