@@ -201,6 +201,7 @@ export default class GyroBackground {
     container.style.width = this.w + 'px';
     container.style.overflow = 'hidden';
     container.style.position = 'absolute';
+    container.style.zIndex = -1;
     container.appendChild( renderer.domElement );
     this.target.prepend( container )
 
@@ -312,6 +313,7 @@ export default class GyroBackground {
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
             //this.container.style.top = '-25px;'
+            this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
             this.container.style.backgroundSize = 'cover';
