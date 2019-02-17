@@ -186,15 +186,15 @@ function () {
       var imageAspect = this.imageWidth / this.imageHeight;
       var containerAspect = this.w / this.h;
 
-      if (this.imageOrientation == 'portrait') {
+      if (this.imageOrientation === 'portrait') {
         var imageWidth = this.h * imageAspect;
 
         if (imageWidth > this.w) {
-          return this.imageHeight;
+          return this.w;
         } else {
           return imageWidth;
         }
-      } else if (this.imageOrientation == 'landscape') {
+      } else if (this.imageOrientation === 'landscape') {
         var imageHeight = this.w / imageAspect;
 
         if (imageHeight > this.h) {
@@ -229,14 +229,15 @@ function () {
       this.boundingRect = this.target.getBoundingClientRect();
       this.w = this.boundingRect.width;
       this.h = this.boundingRect.height;
-      this.squareMax = this.getSquareMax();
       this.target.children[0].style.height = this.h + 'px';
       this.target.children[0].style.width = this.w + 'px';
       this.camera.aspect = this.w / this.h;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.w, this.h);
-      this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-      this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
+      this.squareMax = this.getSquareMax();
+      this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
+      this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+      this.camera.position.z = this.dist;
       this.camera.position.z -= this.zoom;
       this.renderer.render(this.scene, this.camera);
     }
@@ -246,19 +247,11 @@ function () {
       requestAnimationFrame(this.animate);
       this.vrDisplay.getFrameData(this.frameData);
       var orientation = this.frameData.pose.orientation;
-      this.orientationVector.x = orientation[0];
-      this.orientationVector.y = orientation[1];
-      this.orientationVector.z = orientation[2]; //console.log( this.orientationVector );
-
-      this.quaternion = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](new three__WEBPACK_IMPORTED_MODULE_2__["Vector3"](0, this.orientationVector.y, 0), Math.PI / 2);
-      this.orientationVector.applyQuaternion(this.quaternion);
-      console.log(this.orientationVector); //let x = this.originalOrientation[0] - orientation[0];
-      //let y = this.originalOrientation[1] - orientation[1];
-      //let z = this.originalOrientation[2] - orientation[2];
-
-      this.camera.position.x = orientation[1] * this.sensitivity * -100;
-      this.camera.position.y = orientation[0] * this.sensitivity * 100;
-      this.camera.rotation.z = orientation[2] * (0.3 * this.sensitivity / 3);
+      this.phone.rotation.set(orientation[0] / 2, orientation[1] / 2, orientation[2] / 2);
+      this.targetPosition.getWorldPosition(this.targetVector);
+      this.camera.position.x = this.targetVector.x * -this.freedom * 2;
+      this.camera.position.y = this.targetVector.y * -this.freedom * 2;
+      this.camera.rotation.z = orientation[2] * (0.4 * this.sensitivity / 10);
       this.renderer.render(this.scene, this.camera);
     }
   }, {
@@ -379,12 +372,7 @@ function () {
 
     this.portraitSensitivity = typeof portraitSensitivity === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof landscapeSensitivity === 'undefined' ? sensitivity : landscapeSensitivity;
-    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity; //console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
-
-    this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
-    this.landscapeZoom = typeof landscapeZoom === 'undefined' ? zoom : landscapeZoom;
-    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom; //console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
-
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
     this.imageSource = imageSource;
     this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];
@@ -421,6 +409,18 @@ function () {
         this.w = this.boundingRect.width;
         this.h = this.boundingRect.height;
 
+        if (this.w > this.h) {
+          this.containerOrientation = 'landscape';
+        } else if (this.w < this.h) {
+          this.containerOrientation = 'portrait';
+        } else {
+          this.containerOrientation = 'square';
+        }
+
+        this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
+        var imageAspect = this.h / this.w;
+        this.landscapeZoom = typeof landscapeZoom === 'undefined' ? this.phoneOrientation === 'landscape' ? zoom * imageAspect : zoom : landscapeZoom;
+
         if (!this.vrDisplay) {
           if (parallax) {
             var uniqueClass = Math.floor(Math.random() * 100000) + 1;
@@ -428,8 +428,7 @@ function () {
             this.container = document.createElement('div');
             this.container.classList.add(uniqueClass);
             this.container.style.height = this.h + 'px';
-            this.container.style.width = this.w + 'px'; //this.container.style.top = '-25px;'
-
+            this.container.style.width = this.w + 'px';
             this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
@@ -480,16 +479,29 @@ function () {
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
           this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
           this.scene.add(this.imagePlane);
-          this.squareMax = this.getSquareMax();
-          this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-          this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
+          this.squareMax = this.getSquareMax(); //Calculate how much space the plane needs to move based on sensitivity
+
+          this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
+          this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+
+          var _imageAspect = this.imageWidth / this.imageHeight;
+
+          this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+          this.camera.position.z = this.dist;
+          this.camera.position.z -= this.zoom;
           this.vrDisplay.getFrameData(this.frameData);
           var originalOrientation = this.frameData.pose.orientation;
           this.originalOrientation = [originalOrientation[0], originalOrientation[1], originalOrientation[2], originalOrientation[3]];
-          this.orientationVector = new three__WEBPACK_IMPORTED_MODULE_2__["Vector3"](originalOrientation[0], originalOrientation[1], originalOrientation[2]);
-          this.quaternion = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](this.orientationVector, Math.PI / 2);
-          window.addEventListener('resize', this.resize.bind(this));
-          this.resize();
+          this.phone = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.phone.position.set(0, 0, 0);
+          this.phone.rotation.set(originalOrientation[0] / 2, originalOrientation[1] / 2, originalOrientation[2] / 2);
+          this.targetPosition = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.targetPosition.position.set(0, 0, 1);
+          this.targetVector = new three__WEBPACK_IMPORTED_MODULE_2__["Vector3"]();
+          this.phone.add(this.targetPosition);
+          this.scene.add(this.phone);
+          window.addEventListener('resize', this.resize.bind(this)); //this.resize();
+
           this.animate();
         }
       }.bind(this));

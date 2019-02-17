@@ -19,7 +19,8 @@ import {
   LinearFilter,
   RepeatWrapping,
   Vector3,
-  Quaternion
+  Quaternion,
+  Object3D
 } from 'three';
 
 export default class GyroBackground {
@@ -89,13 +90,13 @@ export default class GyroBackground {
     let imageAspect = this.imageWidth / this.imageHeight;
     let containerAspect = this.w / this.h;
 
-    if ( this.imageOrientation == 'portrait' ) {
+    if ( this.imageOrientation === 'portrait' ) {
 
       let imageWidth = this.h * imageAspect;
 
       if ( imageWidth > this.w ) {
 
-        return this.imageHeight;
+        return this.w;
 
       } else {
 
@@ -103,7 +104,7 @@ export default class GyroBackground {
 
       }
 
-    } else if ( this.imageOrientation == 'landscape' ) {
+    } else if ( this.imageOrientation === 'landscape' ) {
 
       let imageHeight = this.w / imageAspect;
 
@@ -154,8 +155,6 @@ export default class GyroBackground {
     this.w = this.boundingRect.width;
     this.h = this.boundingRect.height;
 
-    this.squareMax = this.getSquareMax();
-
     this.target.children[0].style.height = this.h + 'px';
     this.target.children[0].style.width = this.w + 'px';
 
@@ -164,8 +163,10 @@ export default class GyroBackground {
 
     this.renderer.setSize( this.w, this.h );
 
-    this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-    this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
+    this.squareMax = this.getSquareMax();
+    this.freedom = Math.floor( this.squareMax / 2 ) * ( this.sensitivity / 10 );
+    this.dist = ( this.squareMax - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+    this.camera.position.z = this.dist;
     this.camera.position.z -= this.zoom;
 
     this.renderer.render( this.scene, this.camera );
@@ -179,25 +180,13 @@ export default class GyroBackground {
     this.vrDisplay.getFrameData( this.frameData );
     let orientation = this.frameData.pose.orientation;
 
-    this.orientationVector.x = orientation[0];
-    this.orientationVector.y = orientation[1];
-    this.orientationVector.z = orientation[2];
+    this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
 
-    //console.log( this.orientationVector );
+    this.targetPosition.getWorldPosition( this.targetVector );
 
-    this.quaternion = new Quaternion( new Vector3( 0, this.orientationVector.y, 0 ), Math.PI / 2 );
-    this.orientationVector.applyQuaternion( this.quaternion );
-
-
-    console.log( this.orientationVector );
-
-    //let x = this.originalOrientation[0] - orientation[0];
-    //let y = this.originalOrientation[1] - orientation[1];
-    //let z = this.originalOrientation[2] - orientation[2];
-
-    this.camera.position.x = ( orientation[1] * this.sensitivity ) * -100;
-    this.camera.position.y = ( orientation[0] * this.sensitivity ) * 100;
-    this.camera.rotation.z = orientation[2] * ( 0.3 * this.sensitivity/3 );
+    this.camera.position.x = ( this.targetVector.x * -this.freedom ) * 2;
+    this.camera.position.y = ( this.targetVector.y * -this.freedom ) * 2;
+    this.camera.rotation.z = orientation[2] * ( 0.4 * this.sensitivity/10 );
 
     this.renderer.render( this.scene, this.camera );
 
@@ -309,12 +298,6 @@ export default class GyroBackground {
     this.portraitSensitivity = typeof(portraitSensitivity) === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof(landscapeSensitivity) === 'undefined' ? sensitivity : landscapeSensitivity;
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
-    //console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
-
-    this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
-    this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? zoom : landscapeZoom;
-    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-    //console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
 
     this.imageSource = imageSource;
     this.targetQuery = target;
@@ -357,6 +340,18 @@ export default class GyroBackground {
         this.w = this.boundingRect.width;
         this.h = this.boundingRect.height;
 
+        if ( this.w > this.h ) {
+          this.containerOrientation = 'landscape';
+        } else if ( this.w < this.h ) {
+          this.containerOrientation = 'portrait';
+        } else {
+          this.containerOrientation = 'square';
+        }
+
+        this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
+        let imageAspect = this.h / this.w;
+        this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? ( this.phoneOrientation === 'landscape' ? zoom * imageAspect : zoom ) : landscapeZoom;
+
         if ( !this.vrDisplay ) {
 
           if ( parallax ) {
@@ -367,7 +362,6 @@ export default class GyroBackground {
             this.container.classList.add( uniqueClass );
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
-            //this.container.style.top = '-25px;'
             this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
@@ -435,8 +429,16 @@ export default class GyroBackground {
           this.scene.add( this.imagePlane );
 
           this.squareMax = this.getSquareMax();
-          this.dist = this.squareMax / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-          this.camera.position.z = this.dist - ( this.dist/1.1 * this.sensitivity/5 );
+
+          //Calculate how much space the plane needs to move based on sensitivity
+          this.freedom = Math.floor( this.squareMax / 2 ) * ( this.sensitivity / 10 );
+          this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+
+          let imageAspect = this.imageWidth / this.imageHeight;
+
+          this.dist = ( this.squareMax - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+          this.camera.position.z = this.dist;
+          this.camera.position.z -= this.zoom;
 
           this.vrDisplay.getFrameData( this.frameData );
           let originalOrientation = this.frameData.pose.orientation;
@@ -448,11 +450,20 @@ export default class GyroBackground {
             originalOrientation[3]
           ];
 
-          this.orientationVector = new Vector3( originalOrientation[0], originalOrientation[1], originalOrientation[2] );
-          this.quaternion = new Quaternion( this.orientationVector, Math.PI / 2 );
+          this.phone = new Object3D();
+          this.phone.position.set( 0, 0, 0 );
+          this.phone.rotation.set( originalOrientation[0] / 2, originalOrientation[1] / 2, originalOrientation[2] / 2 );
+
+          this.targetPosition = new Object3D();
+          this.targetPosition.position.set( 0, 0, 1 );
+
+          this.targetVector = new Vector3();
+
+          this.phone.add( this.targetPosition );
+          this.scene.add( this.phone );
 
           window.addEventListener('resize', this.resize.bind( this ));
-          this.resize();
+          //this.resize();
           this.animate();
 
         }
