@@ -372,12 +372,12 @@ function () {
 
     this.portraitSensitivity = typeof portraitSensitivity === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof landscapeSensitivity === 'undefined' ? sensitivity : landscapeSensitivity;
-    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
-    console.log("landscape sensitivity: ".concat(this.landscapeSensitivity, ", portrait sensitivity: ").concat(this.portraitSensitivity));
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity; //console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
+
     this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
     this.landscapeZoom = typeof landscapeZoom === 'undefined' ? zoom : landscapeZoom;
-    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-    console.log("landscape zoom: ".concat(this.landscapeZoom, ", portrait zoom: ").concat(this.portraitZoom));
+    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom; //console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
+
     this.imageSource = imageSource;
     this.targetQuery = target;
     this.originalOrientation = [0, 0, 0];
@@ -480,6 +480,7 @@ function () {
           var originalOrientation = this.frameData.pose.orientation;
           this.originalOrientation = [originalOrientation[0], originalOrientation[1], originalOrientation[2], originalOrientation[3]];
           window.addEventListener('resize', this.resize.bind(this));
+          this.resize();
           this.animate();
         }
       }.bind(this));

@@ -295,12 +295,12 @@ export default class GyroBackground {
     this.portraitSensitivity = typeof(portraitSensitivity) === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof(landscapeSensitivity) === 'undefined' ? sensitivity : landscapeSensitivity;
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
-    console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
+    //console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
 
     this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
     this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? zoom : landscapeZoom;
     this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-    console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
+    //console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
 
     this.imageSource = imageSource;
     this.targetQuery = target;
@@ -435,6 +435,7 @@ export default class GyroBackground {
           ];
 
           window.addEventListener('resize', this.resize.bind( this ));
+          this.resize();
           this.animate();
 
         }
