@@ -315,6 +315,11 @@ function () {
     value: function handleVideo(cb) {
       throw new Error('not written yet :D');
     }
+  }, {
+    key: "reset",
+    value: function reset() {
+      this.vrDisplay.resetPose();
+    }
   }]);
 
   function GyroBackground(target, imageSource) {
@@ -388,6 +393,7 @@ function () {
     this.generateRenderer = this.generateRenderer.bind(this);
     this.getVisibleHeight = this.getVisibleHeight.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
+    this.reset = this.reset.bind(this);
     this.enableAccelerometer();
     var fileTypeRegex = /\.[0-9a-z]+$/i;
     this.fileType = fileTypeRegex.exec(imageSource)[0];
