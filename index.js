@@ -17,7 +17,9 @@ import {
   PlaneGeometry,
   Mesh,
   LinearFilter,
-  RepeatWrapping
+  RepeatWrapping,
+  Vector3,
+  Quaternion
 } from 'three';
 
 export default class GyroBackground {
@@ -176,6 +178,18 @@ export default class GyroBackground {
 
     this.vrDisplay.getFrameData( this.frameData );
     let orientation = this.frameData.pose.orientation;
+
+    this.orientationVector.x = orientation[0];
+    this.orientationVector.y = orientation[1];
+    this.orientationVector.z = orientation[2];
+
+    //console.log( this.orientationVector );
+
+    this.quaternion = new Quaternion( new Vector3( 0, this.orientationVector.y, 0 ), Math.PI / 2 );
+    this.orientationVector.applyQuaternion( this.quaternion );
+
+
+    console.log( this.orientationVector );
 
     //let x = this.originalOrientation[0] - orientation[0];
     //let y = this.originalOrientation[1] - orientation[1];
@@ -433,6 +447,9 @@ export default class GyroBackground {
             originalOrientation[2],
             originalOrientation[3]
           ];
+
+          this.orientationVector = new Vector3( originalOrientation[0], originalOrientation[1], originalOrientation[2] );
+          this.quaternion = new Quaternion( this.orientationVector, Math.PI / 2 );
 
           window.addEventListener('resize', this.resize.bind( this ));
           this.resize();
