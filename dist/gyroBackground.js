@@ -113,6 +113,20 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rellax */ "./node_modules/rellax/rellax.js");
 /* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(rellax__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -134,6 +148,16 @@ var GyroBackground =
 /*#__PURE__*/
 function () {
   _createClass(GyroBackground, [{
+    key: "isWebGL2Available",
+    value: function isWebGL2Available() {
+      try {
+        var canvas = document.createElement('canvas');
+        return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+      } catch (e) {
+        return false;
+      }
+    }
+  }, {
     key: "enableAccelerometer",
     value: function enableAccelerometer() {
       var config = function () {
@@ -165,7 +189,6 @@ function () {
 
         if (this.vrDisplay) {
           this.vrDisplay.getFrameData(this.frameData);
-          this.originalOrientation = [this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]];
           console.log("Using webvr-polyfill version " + webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default.a.version + " with configuration: " + JSON.stringify(config));
         } else {
           this.vrDisplay = false;
@@ -186,15 +209,20 @@ function () {
       var imageAspect = this.imageWidth / this.imageHeight;
       var containerAspect = this.w / this.h;
 
-      if (this.imageOrientation == 'portrait') {
-        var imageWidth = this.h * imageAspect;
-
-        if (imageWidth > this.w) {
-          return this.imageHeight;
+      if (this.imageOrientation === 'portrait') {
+        if (this.h > this.w) {
+          //Contaer is in portrait mode
+          if (imageAspect < containerAspect) {
+            //Image is taller than container
+            return this.imageWidth;
+          } else {
+            return this.imageHeight;
+          }
         } else {
-          return imageWidth;
+          //Contanier is in landscape mode or square
+          return this.imageWidth / containerAspect;
         }
-      } else if (this.imageOrientation == 'landscape') {
+      } else if (this.imageOrientation === 'landscape') {
         var imageHeight = this.w / imageAspect;
 
         if (imageHeight > this.h) {
@@ -204,7 +232,7 @@ function () {
         }
       } else {
         //Image orientation is square
-        var _imageWidth = this.h * imageAspect;
+        var imageWidth = this.h * imageAspect;
 
         if (this.w > this.h) {
           //Container orientation is landscape
@@ -229,49 +257,67 @@ function () {
       this.boundingRect = this.target.getBoundingClientRect();
       this.w = this.boundingRect.width;
       this.h = this.boundingRect.height;
-      this.squareMax = this.getSquareMax();
       this.target.children[0].style.height = this.h + 'px';
       this.target.children[0].style.width = this.w + 'px';
       this.camera.aspect = this.w / this.h;
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(this.w, this.h);
-      this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-      this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
+      this.squareMax = this.getSquareMax();
+      this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
+      this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+      this.camera.position.z = this.dist;
       this.camera.position.z -= this.zoom;
       this.renderer.render(this.scene, this.camera);
     }
   }, {
     key: "animate",
     value: function animate() {
-      requestAnimationFrame(this.animate);
+      var _this$q;
+
+      this.vrDisplay.requestAnimationFrame(this.animate);
       this.vrDisplay.getFrameData(this.frameData);
-      var orientation = this.frameData.pose.orientation; //let x = this.originalOrientation[0] - orientation[0];
-      //let y = this.originalOrientation[1] - orientation[1];
-      //let z = this.originalOrientation[2] - orientation[2];
 
-      this.camera.position.x = orientation[1] * this.sensitivity * -100;
-      this.camera.position.y = orientation[0] * this.sensitivity * 100;
-      this.camera.rotation.z = orientation[2] * (0.3 * this.sensitivity / 3);
+      var orientation = _toConsumableArray(this.frameData.pose.orientation).map(function (x) {
+        return x / 6.28;
+      });
+
+      orientation[3] = 1; //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
+
+      (_this$q = this.q).set.apply(_this$q, _toConsumableArray(orientation));
+
+      this.q.normalize();
+      this.phone.setRotationFromQuaternion(this.q);
+      this.targetVector.copy(this.targetPosition.position);
+      this.targetPosition.localToWorld(this.targetVector);
+      this.phoneContainer.worldToLocal(this.targetVector); //mapLinear( this.targetVector.y, 1 , 3 )
+
+      this.camera.position.x = this.targetVector.x * this.freedom * this.yInverse;
+      this.camera.position.y = this.targetVector.y * this.freedom * this.yInverse;
+      this.camera.rotation.z = orientation[2] * (-0.4 * this.sensitivity / 10);
       this.renderer.render(this.scene, this.camera);
-    }
-  }, {
-    key: "getVisibleHeight",
-    value: function getVisibleHeight(depth) {
-      // compensate for cameras not positioned at z=0
-      var cameraOffset = this.camera.position.z;
-      if (depth < cameraOffset) depth -= cameraOffset;else depth += cameraOffset; // vertical fov in radians
-
-      var vFOV = this.camera.fov * Math.PI / 180; // Math.abs to ensure the result is always positive
-
-      return 2 * Math.tan(vFOV / 2) * Math.abs(depth);
     }
   }, {
     key: "generateRenderer",
     value: function generateRenderer() {
-      var renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
-        antialias: true,
-        alpha: true
-      });
+      var renderer;
+
+      if (this.isWebGL2Available()) {
+        //Use WebGL2
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('webgl2');
+        renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
+          canvas: canvas,
+          context: context,
+          antialias: true,
+          alpha: true
+        });
+      } else {
+        renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
+          antialias: true,
+          alpha: true
+        });
+      }
+
       renderer.setClearColor(0x000000, 0);
       renderer.setSize(this.w, this.h);
       var container = document.createElement('div');
@@ -375,23 +421,18 @@ function () {
       this.phoneOrientation = 'portrait';
     }
 
+    var isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+    this.yInverse = isIOS ? -1 : 1;
     this.portraitSensitivity = typeof portraitSensitivity === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof landscapeSensitivity === 'undefined' ? sensitivity : landscapeSensitivity;
-    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity; //console.log(`landscape sensitivity: ${this.landscapeSensitivity}, portrait sensitivity: ${this.portraitSensitivity}`);
-
-    this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
-    this.landscapeZoom = typeof landscapeZoom === 'undefined' ? zoom : landscapeZoom;
-    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom; //console.log(`landscape zoom: ${this.landscapeZoom}, portrait zoom: ${this.portraitZoom}`);
-
+    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
     this.imageSource = imageSource;
     this.targetQuery = target;
-    this.originalOrientation = [0, 0, 0];
     this.resize = this.resize.bind(this);
     this.enableAccelerometer = this.enableAccelerometer.bind(this);
     this.animate = this.animate.bind(this);
     this.enableParallax = this.enableParallax.bind(this);
     this.generateRenderer = this.generateRenderer.bind(this);
-    this.getVisibleHeight = this.getVisibleHeight.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
     this.reset = this.reset.bind(this);
     this.enableAccelerometer();
@@ -420,6 +461,18 @@ function () {
         this.w = this.boundingRect.width;
         this.h = this.boundingRect.height;
 
+        if (this.w > this.h) {
+          this.containerOrientation = 'landscape';
+        } else if (this.w < this.h) {
+          this.containerOrientation = 'portrait';
+        } else {
+          this.containerOrientation = 'square';
+        }
+
+        this.portraitZoom = typeof portraitZoom === 'undefined' ? zoom : portraitZoom;
+        var imageAspect = this.h / this.w;
+        this.landscapeZoom = typeof landscapeZoom === 'undefined' ? this.phoneOrientation === 'landscape' ? zoom * imageAspect : zoom : landscapeZoom;
+
         if (!this.vrDisplay) {
           if (parallax) {
             var uniqueClass = Math.floor(Math.random() * 100000) + 1;
@@ -427,8 +480,7 @@ function () {
             this.container = document.createElement('div');
             this.container.classList.add(uniqueClass);
             this.container.style.height = this.h + 'px';
-            this.container.style.width = this.w + 'px'; //this.container.style.top = '-25px;'
-
+            this.container.style.width = this.w + 'px';
             this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
@@ -479,14 +531,32 @@ function () {
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
           this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
           this.scene.add(this.imagePlane);
-          this.squareMax = this.getSquareMax();
-          this.dist = this.squareMax / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-          this.camera.position.z = this.dist - this.dist / 1.1 * this.sensitivity / 5;
+          this.squareMax = this.getSquareMax(); //Calculate how much space the plane needs to move based on sensitivity
+
+          this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
+          this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+
+          var _imageAspect = this.imageWidth / this.imageHeight;
+
+          this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+          this.camera.position.z = this.dist;
+          this.camera.position.z -= this.zoom;
           this.vrDisplay.getFrameData(this.frameData);
-          var originalOrientation = this.frameData.pose.orientation;
-          this.originalOrientation = [originalOrientation[0], originalOrientation[1], originalOrientation[2], originalOrientation[3]];
-          window.addEventListener('resize', this.resize.bind(this));
-          this.resize();
+          this.q = _construct(three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"], _toConsumableArray(this.frameData.pose.orientation));
+          this.originalQ = this.q.clone();
+          this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.phoneContainer.setRotationFromQuaternion(this.originalQ);
+          this.phone = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.phone.position.set(0, 0, 0);
+          this.phone.setRotationFromQuaternion(this.q);
+          this.targetPosition = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.targetPosition.position.set(0, 0, -1);
+          this.targetVector = new three__WEBPACK_IMPORTED_MODULE_2__["Vector3"]();
+          this.phoneContainer.add(this.phone);
+          this.phone.add(this.targetPosition);
+          this.scene.add(this.phone);
+          window.addEventListener('resize', this.resize.bind(this)); //this.resize();
+
           this.animate();
         }
       }.bind(this));
