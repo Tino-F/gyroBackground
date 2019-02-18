@@ -25,6 +25,15 @@ import {
 
 export default class GyroBackground {
 
+  isWebGL2Available() {
+		try {
+			var canvas = document.createElement( 'canvas' );
+			return !! ( window.WebGL2RenderingContext && canvas.getContext( 'webgl2' ) );
+		} catch ( e ) {
+			return false;
+		}
+	}
+
   enableAccelerometer() {
 
     let config = (function() {
@@ -58,12 +67,6 @@ export default class GyroBackground {
       if ( this.vrDisplay ) {
 
         this.vrDisplay.getFrameData( this.frameData );
-        this.originalOrientation = [
-          this.frameData.pose.orientation[0],
-          this.frameData.pose.orientation[1],
-          this.frameData.pose.orientation[2],
-          this.frameData.pose.orientation[3]
-        ];
         console.log("Using webvr-polyfill version " + WebVRPolyfill.version + " with configuration: " + JSON.stringify(config));
 
       } else {
@@ -92,15 +95,23 @@ export default class GyroBackground {
 
     if ( this.imageOrientation === 'portrait' ) {
 
-      let imageWidth = this.h * imageAspect;
+      if ( this.h > this.w ) {
+        //Contaer is in portrait mode
 
-      if ( imageWidth > this.w ) {
+        if ( imageAspect < containerAspect ) {
+          //Image is taller than container
+          return this.imageWidth;
 
-        return this.w;
+        } else {
+
+          return this.imageHeight
+
+        }
 
       } else {
+        //Contanier is in landscape mode or square
 
-        return imageWidth;
+        return this.imageWidth / containerAspect;
 
       }
 
@@ -175,39 +186,49 @@ export default class GyroBackground {
 
   animate() {
 
-    requestAnimationFrame( this.animate );
+    this.vrDisplay.requestAnimationFrame( this.animate );
 
     this.vrDisplay.getFrameData( this.frameData );
-    let orientation = this.frameData.pose.orientation;
+    let orientation = [ ...this.frameData.pose.orientation ].map(x => x / 6.28);
+    orientation[3] = 1;
 
-    this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
+    //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
 
-    this.targetPosition.getWorldPosition( this.targetVector );
+    this.q.set( ...orientation )
+    this.q.normalize();
+    this.phone.setRotationFromQuaternion( this.q );
 
-    this.camera.position.x = ( this.targetVector.x * -this.freedom ) * 2;
-    this.camera.position.y = ( this.targetVector.y * -this.freedom ) * 2;
-    this.camera.rotation.z = orientation[2] * ( 0.4 * this.sensitivity/10 );
+    this.targetVector.copy( this.targetPosition.position );
+    this.targetPosition.localToWorld( this.targetVector );
+    this.phoneContainer.worldToLocal( this.targetVector );
+
+    //mapLinear( this.targetVector.y, 1 , 3 )
+
+    this.camera.position.x = ( this.targetVector.x * this.freedom ) * this.yInverse;
+    this.camera.position.y = ( this.targetVector.y * this.freedom ) * this.yInverse;
+    this.camera.rotation.z = orientation[2] * ( -0.4 * this.sensitivity/10 );
 
     this.renderer.render( this.scene, this.camera );
 
   }
 
-  getVisibleHeight( depth ) {
-    // compensate for cameras not positioned at z=0
-    const cameraOffset = this.camera.position.z;
-    if ( depth < cameraOffset ) depth -= cameraOffset;
-    else depth += cameraOffset;
-
-    // vertical fov in radians
-    const vFOV = this.camera.fov * Math.PI / 180;
-
-    // Math.abs to ensure the result is always positive
-    return 2 * Math.tan( vFOV / 2 ) * Math.abs( depth );
-  };
-
   generateRenderer() {
 
-    let renderer = new WebGLRenderer({ antialias: true, alpha: true });
+    let renderer;
+
+    if ( this.isWebGL2Available() ) {
+      //Use WebGL2
+
+      let canvas = document.createElement( 'canvas' );
+      let context = canvas.getContext( 'webgl2' );
+      renderer = new WebGLRenderer( { canvas: canvas, context: context, antialias: true, alpha: true } );
+
+    } else {
+
+      renderer = new WebGLRenderer({ antialias: true, alpha: true });
+
+    }
+
     renderer.setClearColor( 0x000000, 0 );
     renderer.setSize( this.w, this.h );
 
@@ -295,19 +316,20 @@ export default class GyroBackground {
       this.phoneOrientation = 'portrait';
     }
 
+    let isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+    this.yInverse = isIOS ? -1 : 1;
+
     this.portraitSensitivity = typeof(portraitSensitivity) === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof(landscapeSensitivity) === 'undefined' ? sensitivity : landscapeSensitivity;
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
 
     this.imageSource = imageSource;
     this.targetQuery = target;
-    this.originalOrientation = [0, 0, 0];
     this.resize = this.resize.bind( this );
     this.enableAccelerometer = this.enableAccelerometer.bind( this );
     this.animate = this.animate.bind( this );
     this.enableParallax = this.enableParallax.bind( this );
     this.generateRenderer = this.generateRenderer.bind( this );
-    this.getVisibleHeight = this.getVisibleHeight.bind( this );
     this.getSquareMax = this.getSquareMax.bind( this );
 
     this.enableAccelerometer();
@@ -441,24 +463,23 @@ export default class GyroBackground {
           this.camera.position.z -= this.zoom;
 
           this.vrDisplay.getFrameData( this.frameData );
-          let originalOrientation = this.frameData.pose.orientation;
 
-          this.originalOrientation = [
-            originalOrientation[0],
-            originalOrientation[1],
-            originalOrientation[2],
-            originalOrientation[3]
-          ];
+          this.q = new Quaternion( ...this.frameData.pose.orientation );
+
+          this.originalQ = this.q.clone();
+          this.phoneContainer = new Object3D();
+          this.phoneContainer.setRotationFromQuaternion( this.originalQ );
 
           this.phone = new Object3D();
           this.phone.position.set( 0, 0, 0 );
-          this.phone.rotation.set( originalOrientation[0] / 2, originalOrientation[1] / 2, originalOrientation[2] / 2 );
+          this.phone.setRotationFromQuaternion( this.q );
 
           this.targetPosition = new Object3D();
-          this.targetPosition.position.set( 0, 0, 1 );
+          this.targetPosition.position.set( 0, 0, -1 );
 
           this.targetVector = new Vector3();
 
+          this.phoneContainer.add( this.phone );
           this.phone.add( this.targetPosition );
           this.scene.add( this.phone );
 
