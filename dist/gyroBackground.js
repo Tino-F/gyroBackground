@@ -119,6 +119,8 @@ function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _co
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
@@ -254,6 +256,10 @@ function () {
 
       this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
       this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+      this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
+      this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
+      this.imagePlane.position.x = parseInt(this.offsetX);
+      this.imagePlane.position.y = parseInt(this.offsetY);
       this.boundingRect = this.target.getBoundingClientRect();
       this.w = this.boundingRect.width;
       this.h = this.boundingRect.height;
@@ -325,7 +331,7 @@ function () {
       container.style.width = this.w + 'px';
       container.style.overflow = 'hidden';
       container.style.position = 'absolute';
-      container.style.zIndex = -1;
+      container.style.zIndex = 0;
       container.appendChild(renderer.domElement);
       this.target.prepend(container);
       return renderer;
@@ -361,26 +367,29 @@ function () {
     value: function handleVideo(cb) {
       throw new Error('not written yet :D');
     }
-  }, {
-    key: "reset",
-    value: function reset() {
-      this.vrDisplay.resetPose();
-    }
   }]);
 
   function GyroBackground(target, imageSource) {
-    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
+    var _ref2;
+
+    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : (_ref2 = {
       sensitivity: 0.5,
+      inverted: false,
       parallax: false,
       parallaxSpeed: -2,
       portraitSensitivity: portraitSensitivity,
       landscapeSensitivity: landscapeSensitivity,
       zoom: 0,
       portraitZoom: portraitZoom,
-      landscapeZoom: landscapeZoom
-    },
+      landscapeZoom: landscapeZoom,
+      offsetX: 0,
+      offsetY: 0,
+      portraitOffset: portraitOffset
+    }, _defineProperty(_ref2, "portraitOffset", portraitOffset), _defineProperty(_ref2, "landscapeOffset", landscapeOffset), _defineProperty(_ref2, "landscapeOffset", landscapeOffset), _ref2),
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
+        _ref$inverted = _ref.inverted,
+        inverted = _ref$inverted === void 0 ? false : _ref$inverted,
         _ref$parallax = _ref.parallax,
         parallax = _ref$parallax === void 0 ? false : _ref$parallax,
         _ref$parallaxSpeed = _ref.parallaxSpeed,
@@ -390,23 +399,18 @@ function () {
         _ref$zoom = _ref.zoom,
         zoom = _ref$zoom === void 0 ? 0 : _ref$zoom,
         portraitZoom = _ref.portraitZoom,
-        landscapeZoom = _ref.landscapeZoom;
+        landscapeZoom = _ref.landscapeZoom,
+        _ref$offsetX = _ref.offsetX,
+        offsetX = _ref$offsetX === void 0 ? 0 : _ref$offsetX,
+        _ref$offsetY = _ref.offsetY,
+        offsetY = _ref$offsetY === void 0 ? 0 : _ref$offsetY,
+        portraitOffsetX = _ref.portraitOffsetX,
+        portraitOffsetY = _ref.portraitOffsetY,
+        landscapeOffsetX = _ref.landscapeOffsetX,
+        landscapeOffsetY = _ref.landscapeOffsetY;
 
     _classCallCheck(this, GyroBackground);
 
-    /*
-      Params:
-        target,
-        imageSource,
-        sensitivity,
-        landscapeSensitivity,
-        portraitSensitivity,
-        zoom,
-        portraitZoom,
-        landscapeZoom,
-        parallax,
-        parallaxSpeed
-    */
     if (!target || typeof target !== 'string') {
       throw new Error('No target was specified.');
     }
@@ -423,6 +427,13 @@ function () {
 
     var isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = isIOS ? -1 : 1;
+    this.yInverse *= inverted ? -1 : 1;
+    this.landscapeOffsetX = typeof landscapeOffsetX === 'undefined' ? offsetX : landscapeOffsetX;
+    this.landscapeOffsetY = typeof landscapeOffsetY === 'undefined' ? offsetY : landscapeOffsetY;
+    this.portraitOffsetX = typeof portraitOffsetX === 'undefined' ? offsetX : portraitOffsetX;
+    this.portraitOffsetY = typeof portraitOffsetY === 'undefined' ? offsetY : portraitOffsetY;
+    this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
+    this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
     this.portraitSensitivity = typeof portraitSensitivity === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof landscapeSensitivity === 'undefined' ? sensitivity : landscapeSensitivity;
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
@@ -434,7 +445,6 @@ function () {
     this.enableParallax = this.enableParallax.bind(this);
     this.generateRenderer = this.generateRenderer.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
-    this.reset = this.reset.bind(this);
     this.enableAccelerometer();
     var fileTypeRegex = /\.[0-9a-z]+$/i;
     this.fileType = fileTypeRegex.exec(imageSource)[0];
@@ -481,7 +491,7 @@ function () {
             this.container.classList.add(uniqueClass);
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
-            this.container.style.zIndex = -1;
+            this.container.style.zIndex = 0;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
             this.container.style.backgroundSize = 'cover';
@@ -530,6 +540,8 @@ function () {
           });
           var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
           this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
+          this.imagePlane.position.x = parseInt(this.offsetX);
+          this.imagePlane.position.y = parseInt(this.offsetY);
           this.scene.add(this.imagePlane);
           this.squareMax = this.getSquareMax(); //Calculate how much space the plane needs to move based on sensitivity
 

@@ -161,6 +161,11 @@ export default class GyroBackground {
 
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
     this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+    this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
+    this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
+
+    this.imagePlane.position.x = parseInt(this.offsetX);
+    this.imagePlane.position.y = parseInt(this.offsetY);
 
     this.boundingRect = this.target.getBoundingClientRect();
     this.w = this.boundingRect.width;
@@ -237,7 +242,7 @@ export default class GyroBackground {
     container.style.width = this.w + 'px';
     container.style.overflow = 'hidden';
     container.style.position = 'absolute';
-    container.style.zIndex = -1;
+    container.style.zIndex = 0;
     container.appendChild( renderer.domElement );
     this.target.prepend( container )
 
@@ -286,21 +291,43 @@ export default class GyroBackground {
 
   }
 
-  constructor( target, imageSource, { sensitivity = 0.5, parallax = false, parallaxSpeed = -2, portraitSensitivity, landscapeSensitivity, zoom = 0, portraitZoom, landscapeZoom } = { sensitivity: 0.5, parallax: false, parallaxSpeed: -2, portraitSensitivity, landscapeSensitivity, zoom: 0, portraitZoom, landscapeZoom } ) {
+  constructor(
+    target,
+    imageSource,
+    {
+      sensitivity = 0.5,
+      inverted = false,
+      parallax = false,
+      parallaxSpeed = -2,
+      portraitSensitivity,
+      landscapeSensitivity,
+      zoom = 0,
+      portraitZoom,
+      landscapeZoom,
+      offsetX = 0,
+      offsetY = 0,
+      portraitOffsetX,
+      portraitOffsetY,
+      landscapeOffsetX,
+      landscapeOffsetY
+     } = {
+       sensitivity: 0.5,
+       inverted: false,
+       parallax: false,
+       parallaxSpeed: -2,
+       portraitSensitivity,
+       landscapeSensitivity,
+       zoom: 0,
+       portraitZoom,
+       landscapeZoom,
+       offsetX: 0,
+       offsetY: 0,
+       portraitOffset,
+       portraitOffset,
+       landscapeOffset,
+       landscapeOffset
+     } ) {
 
-    /*
-      Params:
-        target,
-        imageSource,
-        sensitivity,
-        landscapeSensitivity,
-        portraitSensitivity,
-        zoom,
-        portraitZoom,
-        landscapeZoom,
-        parallax,
-        parallaxSpeed
-    */
 
     if ( !target || typeof(target) !== 'string' ) {
       throw new Error('No target was specified.');
@@ -318,6 +345,16 @@ export default class GyroBackground {
 
     let isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = isIOS ? -1 : 1;
+    this.yInverse *= inverted ? -1 : 1;
+
+    this.landscapeOffsetX = typeof(landscapeOffsetX) === 'undefined' ? offsetX : landscapeOffsetX;
+    this.landscapeOffsetY = typeof(landscapeOffsetY) === 'undefined' ? offsetY : landscapeOffsetY;
+
+    this.portraitOffsetX = typeof(portraitOffsetX) === 'undefined' ? offsetX : portraitOffsetX;
+    this.portraitOffsetY = typeof(portraitOffsetY) === 'undefined' ? offsetY : portraitOffsetY;
+
+    this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
+    this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
 
     this.portraitSensitivity = typeof(portraitSensitivity) === 'undefined' ? sensitivity : portraitSensitivity;
     this.landscapeSensitivity = typeof(landscapeSensitivity) === 'undefined' ? sensitivity : landscapeSensitivity;
@@ -384,7 +421,7 @@ export default class GyroBackground {
             this.container.classList.add( uniqueClass );
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
-            this.container.style.zIndex = -1;
+            this.container.style.zIndex = 0;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
             this.container.style.backgroundSize = 'cover';
@@ -447,6 +484,8 @@ export default class GyroBackground {
           this.material = new MeshBasicMaterial({ map: texture, transparent: true });
           let g = new PlaneGeometry( this.imageWidth, this.imageHeight );
           this.imagePlane = new Mesh( g, this.material );
+          this.imagePlane.position.x = parseInt(this.offsetX);
+          this.imagePlane.position.y = parseInt(this.offsetY);
 
           this.scene.add( this.imagePlane );
 
