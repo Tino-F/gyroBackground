@@ -14,7 +14,9 @@ import {
   PerspectiveCamera,
   TextureLoader,
   MeshBasicMaterial,
+  MeshNormalMaterial,
   PlaneGeometry,
+  BoxBufferGeometry,
   Mesh,
   LinearFilter,
   RepeatWrapping,
@@ -191,29 +193,83 @@ export default class GyroBackground {
 
   animate() {
 
-    this.vrDisplay.requestAnimationFrame( this.animate );
-
     this.vrDisplay.getFrameData( this.frameData );
-    let orientation = [ ...this.frameData.pose.orientation ].map(x => x / 6.28);
-    orientation[3] = 1;
+    let orientation = [ ...this.frameData.pose.orientation ];
 
-    //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
+    this.q.set( ...orientation ).normalize();
 
-    this.q.set( ...orientation )
-    this.q.normalize();
-    this.phone.setRotationFromQuaternion( this.q );
+    Quaternion.slerp( this.originalQ, this.q, this.phone.quaternion, 0.5 )
 
     this.targetVector.copy( this.targetPosition.position );
     this.targetPosition.localToWorld( this.targetVector );
     this.phoneContainer.worldToLocal( this.targetVector );
-
-    //mapLinear( this.targetVector.y, 1 , 3 )
 
     this.camera.position.x = ( this.targetVector.x * this.freedom ) * this.yInverse;
     this.camera.position.y = ( this.targetVector.y * this.freedom ) * this.yInverse;
     this.camera.rotation.z = orientation[2] * ( -0.4 * this.sensitivity/10 );
 
     this.renderer.render( this.scene, this.camera );
+    this.vrDisplay.requestAnimationFrame( this.animate );
+
+  }
+
+  updateCamera () {
+    this.camera.position.x = ( this.targetVector.x * this.freedom ) * this.yInverse;
+    this.camera.position.y = ( this.targetVector.y * this.freedom ) * this.yInverse;
+    this.camera.rotation.z = orientation[2] * ( -0.4 * this.sensitivity/10 );
+  }
+
+  drawGraph() {
+
+    if ( this.graphCTX ) {
+      //this.graphCTX.beginPath();
+      this.graphCTX.arc(this.graphCanvas.width * this.targetVector.x, this.graphCanvas.height * this.targetVector.y, 5, 0, 2 * Math.PI);
+      this.graphCTX.stroke();
+    }
+
+  }
+
+  visualize () {
+
+    //Original Phone position (phone container)
+    let pcg = new BoxBufferGeometry( 20, 40, 3 );
+    let pcm = new MeshNormalMaterial({wireframe: true});
+    let pc = new Mesh( pcg, pcm );
+    pc.setRotationFromQuaternion( this.q );
+
+    this.phoneContainer = pc;
+
+    //Phone
+    let pm = new MeshNormalMaterial({color: 0x000000});
+    let pg = new BoxBufferGeometry( 20, 40, 3 );
+    let p = new Mesh( pg, pm );
+
+    this.phone = p;
+
+    this.scene.add( this.phoneContainer );
+    this.scene.add( this.phone );
+    this.scene.remove( this.imagePlane );
+
+    let canvas = document.createElement('canvas');
+    canvas.width = Math.floor( this.h / 4 );
+    canvas.height = Math.floor( this.h / 4 );
+    canvas.style.position = 'absolute';
+    canvas.style.right = 0;
+    canvas.style.bottom = 0;
+    this.target.appendChild( canvas );
+
+    let ctx = canvas.getContext("2d");
+    ctx.fillStyle = "#FFFFFF";
+
+    this.graphCTX = ctx;
+    this.graphCanvas = canvas;
+
+    this.visualization = true;
+
+    this.camera.position.set( 0, 0, 50 );
+    this.camera.rotation.set( 0, 0, 0 );
+
+    this.updateCamera = this.drawGraph;
 
   }
 
@@ -355,6 +411,7 @@ export default class GyroBackground {
     this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
+    this.visualization = false;
 
     this.landscapeOffsetX = typeof(landscapeOffsetX) === 'undefined' ? offsetX : landscapeOffsetX;
     this.landscapeOffsetY = typeof(landscapeOffsetY) === 'undefined' ? offsetY : landscapeOffsetY;
@@ -378,6 +435,9 @@ export default class GyroBackground {
     this.generateRenderer = this.generateRenderer.bind( this );
     this.getSquareMax = this.getSquareMax.bind( this );
     this.reset = this.reset.bind( this );
+    this.visualize = this.visualize.bind( this );
+    this.drawGraph = this.drawGraph.bind( this );
+    this.updateCamera = this.updateCamera.bind( this );
 
     this.enableAccelerometer();
 
@@ -513,15 +573,10 @@ export default class GyroBackground {
 
           this.vrDisplay.getFrameData( this.frameData );
 
-          console.log( this.frameData.pose.orientation );
           this.q = new Quaternion( this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] );
-          console.log( this.q )
           //this.q.normalize();
 
           this.originalQ = this.q.clone();
-
-          console.log( this.q )
-          console.log( this.originalQ )
 
           this.phoneContainer = new Object3D();
           this.phoneContainer.setRotationFromQuaternion( this.originalQ );
@@ -540,7 +595,6 @@ export default class GyroBackground {
           this.scene.add( this.phone );
 
           window.addEventListener('resize', this.resize.bind( this ));
-          //this.resize();
 
           if( this.isIOS ) {
 

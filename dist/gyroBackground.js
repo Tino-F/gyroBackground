@@ -280,27 +280,74 @@ function () {
     value: function animate() {
       var _this$q;
 
-      this.vrDisplay.requestAnimationFrame(this.animate);
       this.vrDisplay.getFrameData(this.frameData);
 
-      var orientation = _toConsumableArray(this.frameData.pose.orientation).map(function (x) {
-        return x / 6.28;
-      });
+      var orientation = _toConsumableArray(this.frameData.pose.orientation);
 
-      orientation[3] = 1; //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
+      (_this$q = this.q).set.apply(_this$q, _toConsumableArray(orientation)).normalize();
 
-      (_this$q = this.q).set.apply(_this$q, _toConsumableArray(orientation));
-
-      this.q.normalize();
-      this.phone.setRotationFromQuaternion(this.q);
+      three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"].slerp(this.originalQ, this.q, this.phone.quaternion, 0.5);
       this.targetVector.copy(this.targetPosition.position);
       this.targetPosition.localToWorld(this.targetVector);
-      this.phoneContainer.worldToLocal(this.targetVector); //mapLinear( this.targetVector.y, 1 , 3 )
-
+      this.phoneContainer.worldToLocal(this.targetVector);
       this.camera.position.x = this.targetVector.x * this.freedom * this.yInverse;
       this.camera.position.y = this.targetVector.y * this.freedom * this.yInverse;
       this.camera.rotation.z = orientation[2] * (-0.4 * this.sensitivity / 10);
       this.renderer.render(this.scene, this.camera);
+      this.vrDisplay.requestAnimationFrame(this.animate);
+    }
+  }, {
+    key: "updateCamera",
+    value: function updateCamera() {
+      this.camera.position.x = this.targetVector.x * this.freedom * this.yInverse;
+      this.camera.position.y = this.targetVector.y * this.freedom * this.yInverse;
+      this.camera.rotation.z = orientation[2] * (-0.4 * this.sensitivity / 10);
+    }
+  }, {
+    key: "drawGraph",
+    value: function drawGraph() {
+      if (this.graphCTX) {
+        //this.graphCTX.beginPath();
+        this.graphCTX.arc(this.graphCanvas.width * this.targetVector.x, this.graphCanvas.height * this.targetVector.y, 5, 0, 2 * Math.PI);
+        this.graphCTX.stroke();
+      }
+    }
+  }, {
+    key: "visualize",
+    value: function visualize() {
+      //Original Phone position (phone container)
+      var pcg = new three__WEBPACK_IMPORTED_MODULE_2__["BoxBufferGeometry"](20, 40, 3);
+      var pcm = new three__WEBPACK_IMPORTED_MODULE_2__["MeshNormalMaterial"]({
+        wireframe: true
+      });
+      var pc = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](pcg, pcm);
+      pc.setRotationFromQuaternion(this.q);
+      this.phoneContainer = pc; //Phone
+
+      var pm = new three__WEBPACK_IMPORTED_MODULE_2__["MeshNormalMaterial"]({
+        color: 0x000000
+      });
+      var pg = new three__WEBPACK_IMPORTED_MODULE_2__["BoxBufferGeometry"](20, 40, 3);
+      var p = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](pg, pm);
+      this.phone = p;
+      this.scene.add(this.phoneContainer);
+      this.scene.add(this.phone);
+      this.scene.remove(this.imagePlane);
+      var canvas = document.createElement('canvas');
+      canvas.width = Math.floor(this.h / 4);
+      canvas.height = Math.floor(this.h / 4);
+      canvas.style.position = 'absolute';
+      canvas.style.right = 0;
+      canvas.style.bottom = 0;
+      this.target.appendChild(canvas);
+      var ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#FFFFFF";
+      this.graphCTX = ctx;
+      this.graphCanvas = canvas;
+      this.visualization = true;
+      this.camera.position.set(0, 0, 50);
+      this.camera.rotation.set(0, 0, 0);
+      this.updateCamera = this.drawGraph;
     }
   }, {
     key: "generateRenderer",
@@ -437,6 +484,7 @@ function () {
     this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
+    this.visualization = false;
     this.landscapeOffsetX = typeof landscapeOffsetX === 'undefined' ? offsetX : landscapeOffsetX;
     this.landscapeOffsetY = typeof landscapeOffsetY === 'undefined' ? offsetY : landscapeOffsetY;
     this.portraitOffsetX = typeof portraitOffsetX === 'undefined' ? offsetX : portraitOffsetX;
@@ -455,6 +503,9 @@ function () {
     this.generateRenderer = this.generateRenderer.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
     this.reset = this.reset.bind(this);
+    this.visualize = this.visualize.bind(this);
+    this.drawGraph = this.drawGraph.bind(this);
+    this.updateCamera = this.updateCamera.bind(this);
     this.enableAccelerometer();
     var fileTypeRegex = /\.[0-9a-z]+$/i;
     this.fileType = fileTypeRegex.exec(imageSource)[0];
@@ -564,13 +615,9 @@ function () {
           this.camera.position.z = this.dist;
           this.camera.position.z -= this.zoom;
           this.vrDisplay.getFrameData(this.frameData);
-          console.log(this.frameData.pose.orientation);
-          this.q = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]);
-          console.log(this.q); //this.q.normalize();
+          this.q = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]); //this.q.normalize();
 
           this.originalQ = this.q.clone();
-          console.log(this.q);
-          console.log(this.originalQ);
           this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
           this.phoneContainer.setRotationFromQuaternion(this.originalQ);
           this.phone = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
@@ -582,7 +629,7 @@ function () {
           this.phoneContainer.add(this.phone);
           this.phone.add(this.targetPosition);
           this.scene.add(this.phone);
-          window.addEventListener('resize', this.resize.bind(this)); //this.resize();
+          window.addEventListener('resize', this.resize.bind(this));
 
           if (this.isIOS) {
             if (parseInt(this.originalQ._x.toFixed()) === -0) {
