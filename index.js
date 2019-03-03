@@ -291,6 +291,15 @@ export default class GyroBackground {
 
   }
 
+  //Reset the Phone's container orientation
+
+  reset() {
+    this.vrDisplay.requestAnimationFrame( () => {} )
+    this.vrDisplay.getFrameData( this.frameData );
+    this.originalQ = new Quaternion( ...this.frameData.pose.orientation );
+    this.phoneContainer.setRotationFromQuaternion( this.originalQ );
+  }
+
   constructor(
     target,
     imageSource,
@@ -343,8 +352,8 @@ export default class GyroBackground {
       this.phoneOrientation = 'portrait';
     }
 
-    let isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
-    this.yInverse = isIOS ? -1 : 1;
+    this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+    this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
 
     this.landscapeOffsetX = typeof(landscapeOffsetX) === 'undefined' ? offsetX : landscapeOffsetX;
@@ -368,6 +377,7 @@ export default class GyroBackground {
     this.enableParallax = this.enableParallax.bind( this );
     this.generateRenderer = this.generateRenderer.bind( this );
     this.getSquareMax = this.getSquareMax.bind( this );
+    this.reset = this.reset.bind( this );
 
     this.enableAccelerometer();
 
@@ -503,9 +513,16 @@ export default class GyroBackground {
 
           this.vrDisplay.getFrameData( this.frameData );
 
-          this.q = new Quaternion( ...this.frameData.pose.orientation );
+          console.log( this.frameData.pose.orientation );
+          this.q = new Quaternion( this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] );
+          console.log( this.q )
+          //this.q.normalize();
 
           this.originalQ = this.q.clone();
+
+          console.log( this.q )
+          console.log( this.originalQ )
+
           this.phoneContainer = new Object3D();
           this.phoneContainer.setRotationFromQuaternion( this.originalQ );
 
@@ -524,6 +541,15 @@ export default class GyroBackground {
 
           window.addEventListener('resize', this.resize.bind( this ));
           //this.resize();
+
+          if( this.isIOS ) {
+
+            if ( parseInt( this.originalQ._x.toFixed() ) === -0 ) {
+              this.yInverse *= -1
+            }
+
+          }
+
           this.animate();
 
         }

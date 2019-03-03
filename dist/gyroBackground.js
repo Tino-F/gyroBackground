@@ -113,13 +113,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rellax */ "./node_modules/rellax/rellax.js");
 /* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(rellax__WEBPACK_IMPORTED_MODULE_1__);
 /* harmony import */ var three__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
 function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
 
 function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
 
@@ -366,6 +366,15 @@ function () {
     key: "handleVideo",
     value: function handleVideo(cb) {
       throw new Error('not written yet :D');
+    } //Reset the Phone's container orientation
+
+  }, {
+    key: "reset",
+    value: function reset() {
+      this.vrDisplay.requestAnimationFrame(function () {});
+      this.vrDisplay.getFrameData(this.frameData);
+      this.originalQ = _construct(three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"], _toConsumableArray(this.frameData.pose.orientation));
+      this.phoneContainer.setRotationFromQuaternion(this.originalQ);
     }
   }]);
 
@@ -425,8 +434,8 @@ function () {
       this.phoneOrientation = 'portrait';
     }
 
-    var isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
-    this.yInverse = isIOS ? -1 : 1;
+    this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
+    this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
     this.landscapeOffsetX = typeof landscapeOffsetX === 'undefined' ? offsetX : landscapeOffsetX;
     this.landscapeOffsetY = typeof landscapeOffsetY === 'undefined' ? offsetY : landscapeOffsetY;
@@ -445,6 +454,7 @@ function () {
     this.enableParallax = this.enableParallax.bind(this);
     this.generateRenderer = this.generateRenderer.bind(this);
     this.getSquareMax = this.getSquareMax.bind(this);
+    this.reset = this.reset.bind(this);
     this.enableAccelerometer();
     var fileTypeRegex = /\.[0-9a-z]+$/i;
     this.fileType = fileTypeRegex.exec(imageSource)[0];
@@ -554,8 +564,13 @@ function () {
           this.camera.position.z = this.dist;
           this.camera.position.z -= this.zoom;
           this.vrDisplay.getFrameData(this.frameData);
-          this.q = _construct(three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"], _toConsumableArray(this.frameData.pose.orientation));
+          console.log(this.frameData.pose.orientation);
+          this.q = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]);
+          console.log(this.q); //this.q.normalize();
+
           this.originalQ = this.q.clone();
+          console.log(this.q);
+          console.log(this.originalQ);
           this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
           this.phoneContainer.setRotationFromQuaternion(this.originalQ);
           this.phone = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
@@ -568,6 +583,12 @@ function () {
           this.phone.add(this.targetPosition);
           this.scene.add(this.phone);
           window.addEventListener('resize', this.resize.bind(this)); //this.resize();
+
+          if (this.isIOS) {
+            if (parseInt(this.originalQ._x.toFixed()) === -0) {
+              this.yInverse *= -1;
+            }
+          }
 
           this.animate();
         }
