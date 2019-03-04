@@ -201,7 +201,8 @@ function () {
       portraitOffsetX: portraitOffsetX,
       portraitOffsetY: portraitOffsetY,
       landscapeOffsetX: landscapeOffsetX,
-      landscapeOffsetY: landscapeOffsetY
+      landscapeOffsetY: landscapeOffsetY,
+      visualize: false
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
@@ -224,7 +225,9 @@ function () {
         portraitOffsetX = _ref.portraitOffsetX,
         portraitOffsetY = _ref.portraitOffsetY,
         landscapeOffsetX = _ref.landscapeOffsetX,
-        landscapeOffsetY = _ref.landscapeOffsetY;
+        landscapeOffsetY = _ref.landscapeOffsetY,
+        _ref$visualize = _ref.visualize,
+        visualize = _ref$visualize === void 0 ? false : _ref$visualize;
 
     _classCallCheck(this, GyroBackground);
 
@@ -414,6 +417,7 @@ function () {
           }
 
           this.animate();
+          this.visualize();
         }
       }.bind(this));
     }.bind(this));

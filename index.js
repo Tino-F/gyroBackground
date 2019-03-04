@@ -49,7 +49,8 @@ export default class GyroBackground {
       portraitOffsetX,
       portraitOffsetY,
       landscapeOffsetX,
-      landscapeOffsetY
+      landscapeOffsetY,
+      visualize = false
      } = {
        sensitivity: 0.5,
        inverted: false,
@@ -65,7 +66,8 @@ export default class GyroBackground {
        portraitOffsetX,
        portraitOffsetY,
        landscapeOffsetX,
-       landscapeOffsetY
+       landscapeOffsetY,
+       visualize: false
      } ) {
 
     if ( !target || typeof(target) !== 'string' ) {
@@ -288,6 +290,7 @@ export default class GyroBackground {
           }
 
           this.animate();
+          this.visualize();
 
         }
 
