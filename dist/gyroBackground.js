@@ -332,7 +332,7 @@ function () {
             this.container.classList.add(uniqueClass);
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
-            this.container.style.zIndex = 0;
+            this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
             this.container.style.backgroundSize = 'cover';
@@ -52707,17 +52707,8 @@ function generateRenderer() {
   container.style.width = this.w + 'px';
   container.style.overflow = 'hidden';
   container.style.position = 'absolute';
-  container.style.zIndex = 0;
-  container.appendChild(renderer.domElement); //Make sure the zIndex of all the children are at least 1
-
-  for (var i = 0; i < this.target.children.length; i++) {
-    var child = this.target.children[i];
-
-    if (child.style.zIndex == 0 || !child.style.zIndex) {
-      child.style.zIndex = 1;
-    }
-  }
-
+  container.style.zIndex = -1;
+  container.appendChild(renderer.domElement);
   this.target.prepend(container);
   return renderer;
 }

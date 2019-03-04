@@ -177,7 +177,7 @@ export default class GyroBackground {
             this.container.classList.add( uniqueClass );
             this.container.style.height = this.h + 'px';
             this.container.style.width = this.w + 'px';
-            this.container.style.zIndex = 0;
+            this.container.style.zIndex = -1;
             this.container.style.overflow = 'hidden';
             this.container.style.position = 'absolute';
             this.container.style.backgroundSize = 'cover';
@@ -290,7 +290,7 @@ export default class GyroBackground {
           }
 
           this.animate();
-          
+
           if ( visualize ) {
             this.visualize();
           }

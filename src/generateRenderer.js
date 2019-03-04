@@ -25,17 +25,8 @@ export default function generateRenderer() {
   container.style.width = this.w + 'px';
   container.style.overflow = 'hidden';
   container.style.position = 'absolute';
-  container.style.zIndex = 0;
+  container.style.zIndex = -1;
   container.appendChild( renderer.domElement );
-
-  //Make sure the zIndex of all the children are at least 1
-
-  for ( let i = 0; i < this.target.children.length; i++ ) {
-    let child = this.target.children[i];
-    if ( child.style.zIndex == 0 || !child.style.zIndex ) {
-      child.style.zIndex = 1;
-    }
-  }
 
   this.target.prepend( container )
 

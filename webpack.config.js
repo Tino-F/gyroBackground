@@ -8,6 +8,13 @@ module.exports = {
       "gyroBackground.min": path.join(__dirname, "entry.js"),
     },
     "devtool": "source-map",
+    "devServer": {
+      hot: true,
+      port: 3000,
+      compress: true,
+      contentBase: __dirname,
+      publicPath: '/dist/'
+    },
     "output": {
         "path": path.join(__dirname, '/dist'),
         "filename": "[name].js",
