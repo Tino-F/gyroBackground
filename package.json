@@ -1,15 +1,16 @@
 {
-  "name": "GyroBackground",
-  "version": "1.0.0",
-  "description": "",
+  "name": "gyrobackground",
+  "version": "0.5.0",
+  "description": "A simple way to create gyroscopically responsive background images.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "webpack",
     "dev": "webpack-dev-server"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Tino Fileccia",
+  "repository": "Tino-F/gyroBackground",
+  "license": "MIT",
   "devDependencies": {
     "@babel/core": "^7.1.6",
     "@babel/preset-env": "^7.1.6",
@@ -25,5 +26,23 @@
     "three": "^0.98.0",
     "uglifyjs-webpack-plugin": "^2.1.1",
     "webvr-polyfill": "^0.10.10"
-  }
+  },
+  "keywords": [
+    "3d",
+    "panorama",
+    "cardboard",
+    "webvr",
+    "oculus",
+    "three",
+    "three.js",
+    "rift",
+    "vive",
+    "vr",
+    "gyroscopic",
+    "background",
+    "image",
+    "responsive",
+    "interactive",
+    "webvr"
+  ]
 }

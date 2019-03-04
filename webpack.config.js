@@ -9,6 +9,8 @@ module.exports = {
     },
     "devtool": "source-map",
     "devServer": {
+      host: '0.0.0.0',
+      watchContentBase: true,
       hot: true,
       port: 3000,
       compress: true,

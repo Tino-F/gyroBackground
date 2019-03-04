@@ -38,3 +38,4 @@ var background = new GyroBackground('#myImage', 'imgs/4.jpg', {
 | portraitOffsetY | int | offsetY | The image's offset from the auto-calculated Y position when the device is in portrait mode. |
 | landscapeOffsetY | int | offsetY | The image's offset from the auto-calculated Y position when the device is in landscape mode. |
 | inverted | Boolean | false | Reverse movement on the X & Y axis. |
+| visualize | Boolean | false | Show a 3D representation of the phone's original position vs current. |

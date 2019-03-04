@@ -408,7 +408,12 @@ function () {
           this.phoneContainer.add(this.phone);
           this.phone.add(this.targetPosition);
           this.scene.add(this.phone);
-          window.addEventListener('resize', this.resize.bind(this)); //Fix IOS issue
+          window.addEventListener('resize', this.resize.bind(this));
+
+          if (screen && screen.orientation) {
+            screen.orientation.onchange = this.resize.bind(this);
+          } //Fix IOS issue
+
 
           if (this.isIOS) {
             if (parseInt(this.originalQ._x.toFixed()) === -0) {

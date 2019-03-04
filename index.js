@@ -280,6 +280,10 @@ export default class GyroBackground {
 
           window.addEventListener('resize', this.resize.bind( this ));
 
+          if ( screen && screen.orientation ) {
+            screen.orientation.onchange = this.resize.bind( this );
+          }
+
           //Fix IOS issue
           if( this.isIOS ) {
 
