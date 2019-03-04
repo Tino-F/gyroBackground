@@ -108,26 +108,17 @@ module.exports = __webpack_require__(/*! ./index.js */ "./index.js").default;
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return GyroBackground; });
-/* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! webvr-polyfill */ "./node_modules/webvr-polyfill/build/webvr-polyfill.js");
-/* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! rellax */ "./node_modules/rellax/rellax.js");
-/* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(rellax__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _src_visualizer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./src/visualizer */ "./src/visualizer.js");
+/* harmony import */ var _src_enableAccelerometer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./src/enableAccelerometer */ "./src/enableAccelerometer.js");
+/* harmony import */ var _src_getImageMin__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./src/getImageMin */ "./src/getImageMin.js");
+/* harmony import */ var _src_onResize__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./src/onResize */ "./src/onResize.js");
+/* harmony import */ var _src_animate__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./src/animate */ "./src/animate.js");
+/* harmony import */ var _src_generateRenderer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./src/generateRenderer */ "./src/generateRenderer.js");
+/* harmony import */ var _src_handleStaticImage__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./src/handleStaticImage */ "./src/handleStaticImage.js");
+/* harmony import */ var _src_enableParallax__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./src/enableParallax */ "./src/enableParallax.js");
+/* harmony import */ var _src_reset__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./src/reset */ "./src/reset.js");
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
-function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
-
-function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
-
-function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
-
-function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
-
-function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
-
-function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -135,13 +126,13 @@ function _defineProperties(target, props) { for (var i = 0; i < props.length; i+
 
 function _createClass(Constructor, protoProps, staticProps) { if (protoProps) _defineProperties(Constructor.prototype, protoProps); if (staticProps) _defineProperties(Constructor, staticProps); return Constructor; }
 
-/*
 
-Here are some of the options I plan on including:
 
-Sensitivity
 
-*/
+
+
+
+
 
 
 
@@ -150,231 +141,49 @@ var GyroBackground =
 /*#__PURE__*/
 function () {
   _createClass(GyroBackground, [{
-    key: "isWebGL2Available",
-    value: function isWebGL2Available() {
-      try {
-        var canvas = document.createElement('canvas');
-        return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
-      } catch (e) {
-        return false;
-      }
-    }
-  }, {
     key: "enableAccelerometer",
     value: function enableAccelerometer() {
-      var config = function () {
-        var config = {};
-        var q = window.location.search.substring(1);
-
-        if (q === '') {
-          return config;
-        }
-
-        var params = q.split('&');
-        var param, name, value;
-
-        for (var i = 0; i < params.length; i++) {
-          param = params[i].split('=');
-          name = param[0];
-          value = param[1]; // All config values are either boolean or float
-
-          config[name] = value === 'true' ? true : value === 'false' ? false : parseFloat(value);
-        }
-
-        return config;
-      }();
-
-      var polyfill = new webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default.a(config);
-      this.frameData = new VRFrameData();
-      navigator.getVRDisplays().then(function (vrDisplays) {
-        this.vrDisplay = vrDisplays[0];
-
-        if (this.vrDisplay) {
-          this.vrDisplay.getFrameData(this.frameData);
-          console.log("Using webvr-polyfill version " + webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default.a.version + " with configuration: " + JSON.stringify(config));
-        } else {
-          this.vrDisplay = false;
-        }
-      }.bind(this));
+      _src_enableAccelerometer__WEBPACK_IMPORTED_MODULE_2__["default"].apply(this);
     }
   }, {
-    key: "enableParallax",
-    value: function enableParallax(className, speed) {
-      var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_1___default.a(".".concat(className), {
-        speed: speed,
-        center: true
-      });
-    }
-  }, {
-    key: "getSquareMax",
-    value: function getSquareMax() {
-      var imageAspect = this.imageWidth / this.imageHeight;
-      var containerAspect = this.w / this.h;
-
-      if (this.imageOrientation === 'portrait') {
-        if (this.h > this.w) {
-          //Contaer is in portrait mode
-          if (imageAspect < containerAspect) {
-            //Image is taller than container
-            return this.imageWidth;
-          } else {
-            return this.imageHeight;
-          }
-        } else {
-          //Contanier is in landscape mode or square
-          return this.imageWidth / containerAspect;
-        }
-      } else if (this.imageOrientation === 'landscape') {
-        var imageHeight = this.w / imageAspect;
-
-        if (imageHeight > this.h) {
-          return this.h;
-        } else {
-          return this.imageHeight;
-        }
-      } else {
-        //Image orientation is square
-        var imageWidth = this.h * imageAspect;
-
-        if (this.w > this.h) {
-          //Container orientation is landscape
-          return this.h;
-        } else {
-          return this.h;
-        }
-      }
+    key: "getImageMinSize",
+    value: function getImageMinSize() {
+      return _src_getImageMin__WEBPACK_IMPORTED_MODULE_3__["default"].apply(this);
     }
   }, {
     key: "resize",
     value: function resize(e) {
-      //Update sensitivity before zoom
-      if (window.innerHeight < window.innerWidth) {
-        this.phoneOrientation = 'landscape';
-      } else {
-        this.phoneOrientation = 'portrait';
-      }
-
-      this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
-      this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-      this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
-      this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
-      this.imagePlane.position.x = parseInt(this.offsetX);
-      this.imagePlane.position.y = parseInt(this.offsetY);
-      this.boundingRect = this.target.getBoundingClientRect();
-      this.w = this.boundingRect.width;
-      this.h = this.boundingRect.height;
-      this.target.children[0].style.height = this.h + 'px';
-      this.target.children[0].style.width = this.w + 'px';
-      this.camera.aspect = this.w / this.h;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(this.w, this.h);
-      this.squareMax = this.getSquareMax();
-      this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
-      this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
-      this.camera.position.z = this.dist;
-      this.camera.position.z -= this.zoom;
-      this.renderer.render(this.scene, this.camera);
+      _src_onResize__WEBPACK_IMPORTED_MODULE_4__["default"].apply(this, e);
     }
   }, {
     key: "animate",
     value: function animate() {
-      var _this$q;
-
-      this.vrDisplay.requestAnimationFrame(this.animate);
-      this.vrDisplay.getFrameData(this.frameData);
-
-      var orientation = _toConsumableArray(this.frameData.pose.orientation).map(function (x) {
-        return x / 6.28;
-      });
-
-      orientation[3] = 1; //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
-
-      (_this$q = this.q).set.apply(_this$q, _toConsumableArray(orientation));
-
-      this.q.normalize();
-      this.phone.setRotationFromQuaternion(this.q);
-      this.targetVector.copy(this.targetPosition.position);
-      this.targetPosition.localToWorld(this.targetVector);
-      this.phoneContainer.worldToLocal(this.targetVector); //mapLinear( this.targetVector.y, 1 , 3 )
-
-      this.camera.position.x = this.targetVector.x * this.freedom * this.yInverse;
-      this.camera.position.y = this.targetVector.y * this.freedom * this.yInverse;
-      this.camera.rotation.z = orientation[2] * (-0.4 * this.sensitivity / 10);
-      this.renderer.render(this.scene, this.camera);
+      _src_animate__WEBPACK_IMPORTED_MODULE_5__["default"].apply(this);
     }
   }, {
     key: "generateRenderer",
     value: function generateRenderer() {
-      var renderer;
-
-      if (this.isWebGL2Available()) {
-        //Use WebGL2
-        var canvas = document.createElement('canvas');
-        var context = canvas.getContext('webgl2');
-        renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
-          canvas: canvas,
-          context: context,
-          antialias: true,
-          alpha: true
-        });
-      } else {
-        renderer = new three__WEBPACK_IMPORTED_MODULE_2__["WebGLRenderer"]({
-          antialias: true,
-          alpha: true
-        });
-      }
-
-      renderer.setClearColor(0x000000, 0);
-      renderer.setSize(this.w, this.h);
-      var container = document.createElement('div');
-      container.style.height = this.h + 'px';
-      container.style.width = this.w + 'px';
-      container.style.overflow = 'hidden';
-      container.style.position = 'absolute';
-      container.style.zIndex = 0;
-      container.appendChild(renderer.domElement);
-      this.target.prepend(container);
-      return renderer;
+      return _src_generateRenderer__WEBPACK_IMPORTED_MODULE_6__["default"].apply(this);
     }
   }, {
     key: "handleStaticImage",
     value: function handleStaticImage(imageSource, cb) {
-      var loader = new three__WEBPACK_IMPORTED_MODULE_2__["TextureLoader"]();
-      loader.load(imageSource, function (texture) {
-        //onload
-        texture.minFilter = three__WEBPACK_IMPORTED_MODULE_2__["LinearFilter"];
-        this.imageWidth = texture.image.width;
-        this.imageHeight = texture.image.height; //Determine image orientation
-
-        if (this.imageHeight > this.imageWidth) {
-          this.imageOrientation = 'portrait';
-        } else if (this.imageWidth === this.imageHeight) {
-          this.imageOrientation = 'square';
-        } else {
-          this.imageOrientation = 'landscape';
-        }
-
-        cb(texture);
-      }.bind(this), //progress callback not yet supported
-      undefined, function (err) {
-        //onError
-        console.error(err);
-        throw new Error('failed to load image ' + imageSource);
-      });
+      _src_handleStaticImage__WEBPACK_IMPORTED_MODULE_7__["default"].call(this, imageSource, cb);
     }
   }, {
-    key: "handleVideo",
-    value: function handleVideo(cb) {
-      throw new Error('not written yet :D');
-    } //Reset the Phone's container orientation
-
+    key: "visualize",
+    value: function visualize() {
+      _src_visualizer__WEBPACK_IMPORTED_MODULE_1__["default"].apply(this);
+    }
+  }, {
+    key: "enableParallax",
+    value: function enableParallax(className, speed) {
+      _src_enableParallax__WEBPACK_IMPORTED_MODULE_8__["default"].call(this, className, speed);
+    }
   }, {
     key: "reset",
     value: function reset() {
-      this.vrDisplay.requestAnimationFrame(function () {});
-      this.vrDisplay.getFrameData(this.frameData);
-      this.originalQ = _construct(three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"], _toConsumableArray(this.frameData.pose.orientation));
-      this.phoneContainer.setRotationFromQuaternion(this.originalQ);
+      _src_reset__WEBPACK_IMPORTED_MODULE_9__["default"].apply(this);
     }
   }]);
 
@@ -428,6 +237,15 @@ function () {
       throw new Error('No image was chosen.');
     }
 
+    this.resize = this.resize.bind(this);
+    this.enableAccelerometer = this.enableAccelerometer.bind(this);
+    this.animate = this.animate.bind(this);
+    this.enableParallax = this.enableParallax.bind(this);
+    this.generateRenderer = this.generateRenderer.bind(this);
+    this.getImageMinSize = this.getImageMinSize.bind(this);
+    this.reset = this.reset.bind(this);
+    this.visualize = this.visualize.bind(this);
+
     if (window.innerHeight < window.innerWidth) {
       this.phoneOrientation = 'landscape';
     } else {
@@ -437,6 +255,7 @@ function () {
     this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
+    this.animateGraph = false;
     this.landscapeOffsetX = typeof landscapeOffsetX === 'undefined' ? offsetX : landscapeOffsetX;
     this.landscapeOffsetY = typeof landscapeOffsetY === 'undefined' ? offsetY : landscapeOffsetY;
     this.portraitOffsetX = typeof portraitOffsetX === 'undefined' ? offsetX : portraitOffsetX;
@@ -448,20 +267,14 @@ function () {
     this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
     this.imageSource = imageSource;
     this.targetQuery = target;
-    this.resize = this.resize.bind(this);
-    this.enableAccelerometer = this.enableAccelerometer.bind(this);
-    this.animate = this.animate.bind(this);
-    this.enableParallax = this.enableParallax.bind(this);
-    this.generateRenderer = this.generateRenderer.bind(this);
-    this.getSquareMax = this.getSquareMax.bind(this);
-    this.reset = this.reset.bind(this);
     this.enableAccelerometer();
     var fileTypeRegex = /\.[0-9a-z]+$/i;
     this.fileType = fileTypeRegex.exec(imageSource)[0];
 
     if (this.fileType === '.gif') {
       //User selected a gif
-      this.loader = this.handleVideo.bind(this);
+      //replace handleStaticImage witha function to handle video/gif loading
+      this.loader = this.handleStaticImage.bind(this);
     } else {
       this.loader = this.handleStaticImage.bind(this);
     }
@@ -540,49 +353,45 @@ function () {
           }
         } else if (this.vrDisplay) {
           this.state = 'gyro';
-          this.camera = new three__WEBPACK_IMPORTED_MODULE_2__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
-          this.scene = new three__WEBPACK_IMPORTED_MODULE_2__["Scene"]();
+          this.camera = new three__WEBPACK_IMPORTED_MODULE_0__["PerspectiveCamera"](75, this.w / this.h, 0.1, 3000);
+          this.scene = new three__WEBPACK_IMPORTED_MODULE_0__["Scene"]();
           this.renderer = this.generateRenderer();
           texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
-          this.material = new three__WEBPACK_IMPORTED_MODULE_2__["MeshBasicMaterial"]({
+          this.material = new three__WEBPACK_IMPORTED_MODULE_0__["MeshBasicMaterial"]({
             map: texture,
             transparent: true
           });
-          var g = new three__WEBPACK_IMPORTED_MODULE_2__["PlaneGeometry"](this.imageWidth, this.imageHeight);
-          this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_2__["Mesh"](g, this.material);
+          var g = new three__WEBPACK_IMPORTED_MODULE_0__["PlaneGeometry"](this.imageWidth, this.imageHeight);
+          this.imagePlane = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](g, this.material);
           this.imagePlane.position.x = parseInt(this.offsetX);
           this.imagePlane.position.y = parseInt(this.offsetY);
           this.scene.add(this.imagePlane);
-          this.squareMax = this.getSquareMax(); //Calculate how much space the plane needs to move based on sensitivity
+          this.imageMinSize = this.getImageMinSize(); //Calculate how much space the plane needs to move based on sensitivity
 
-          this.freedom = Math.floor(this.squareMax / 2) * (this.sensitivity / 10);
+          this.freedom = Math.floor(this.imageMinSize / 2) * (this.sensitivity / 10);
           this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
 
           var _imageAspect = this.imageWidth / this.imageHeight;
 
-          this.dist = (this.squareMax - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+          this.dist = (this.imageMinSize - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
           this.camera.position.z = this.dist;
           this.camera.position.z -= this.zoom;
           this.vrDisplay.getFrameData(this.frameData);
-          console.log(this.frameData.pose.orientation);
-          this.q = new three__WEBPACK_IMPORTED_MODULE_2__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]);
-          console.log(this.q); //this.q.normalize();
+          this.q = new three__WEBPACK_IMPORTED_MODULE_0__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]); //this.q.normalize();
 
           this.originalQ = this.q.clone();
-          console.log(this.q);
-          console.log(this.originalQ);
-          this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_0__["Object3D"]();
           this.phoneContainer.setRotationFromQuaternion(this.originalQ);
-          this.phone = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.phone = new three__WEBPACK_IMPORTED_MODULE_0__["Object3D"]();
           this.phone.position.set(0, 0, 0);
           this.phone.setRotationFromQuaternion(this.q);
-          this.targetPosition = new three__WEBPACK_IMPORTED_MODULE_2__["Object3D"]();
+          this.targetPosition = new three__WEBPACK_IMPORTED_MODULE_0__["Object3D"]();
           this.targetPosition.position.set(0, 0, -1);
-          this.targetVector = new three__WEBPACK_IMPORTED_MODULE_2__["Vector3"]();
+          this.targetVector = new three__WEBPACK_IMPORTED_MODULE_0__["Vector3"]();
           this.phoneContainer.add(this.phone);
           this.phone.add(this.targetPosition);
           this.scene.add(this.phone);
-          window.addEventListener('resize', this.resize.bind(this)); //this.resize();
+          window.addEventListener('resize', this.resize.bind(this));
 
           if (this.isIOS) {
             if (parseInt(this.originalQ._x.toFixed()) === -0) {
@@ -52706,6 +52515,437 @@ return src;
 })));
 
 /* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(/*! ./../../webpack/buildin/global.js */ "./node_modules/webpack/buildin/global.js")))
+
+/***/ }),
+
+/***/ "./src/animate.js":
+/*!************************!*\
+  !*** ./src/animate.js ***!
+  \************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return animate; });
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+/**
+TODO: Use slerp to calculate the distance between the starting Quaternion and
+  the current quaternion.
+**/
+function animate() {
+  var _this$q;
+
+  this.vrDisplay.requestAnimationFrame(this.animate);
+  this.vrDisplay.getFrameData(this.frameData);
+
+  var orientation = _toConsumableArray(this.frameData.pose.orientation).map(function (x) {
+    return x / 6.28;
+  });
+
+  orientation[3] = 1;
+
+  (_this$q = this.q).set.apply(_this$q, _toConsumableArray(orientation)).normalize();
+
+  this.phone.setRotationFromQuaternion(this.q);
+  this.targetVector.copy(this.targetPosition.position);
+  this.targetPosition.localToWorld(this.targetVector);
+  this.phoneContainer.worldToLocal(this.targetVector);
+
+  if (this.animateGraph) {
+    this.animateGraph();
+  } else {
+    this.camera.position.x = this.targetVector.x * this.freedom * this.yInverse;
+    this.camera.position.y = this.targetVector.y * this.freedom * this.yInverse;
+    this.camera.rotation.z = orientation[2] * (-0.4 * this.sensitivity / 10);
+  }
+
+  this.renderer.render(this.scene, this.camera);
+}
+
+/***/ }),
+
+/***/ "./src/enableAccelerometer.js":
+/*!************************************!*\
+  !*** ./src/enableAccelerometer.js ***!
+  \************************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return enableAccelerometer; });
+/* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! webvr-polyfill */ "./node_modules/webvr-polyfill/build/webvr-polyfill.js");
+/* harmony import */ var webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(webvr_polyfill__WEBPACK_IMPORTED_MODULE_0__);
+
+function enableAccelerometer() {
+  var config = function () {
+    var config = {};
+    var q = window.location.search.substring(1);
+
+    if (q === '') {
+      return config;
+    }
+
+    var params = q.split('&');
+    var param, name, value;
+
+    for (var i = 0; i < params.length; i++) {
+      param = params[i].split('=');
+      name = param[0];
+      value = param[1]; // All config values are either boolean or float
+
+      config[name] = value === 'true' ? true : value === 'false' ? false : parseFloat(value);
+    }
+
+    return config;
+  }();
+
+  var polyfill = new webvr_polyfill__WEBPACK_IMPORTED_MODULE_0___default.a(config);
+  this.frameData = new VRFrameData();
+  navigator.getVRDisplays().then(function (vrDisplays) {
+    this.vrDisplay = vrDisplays[0];
+
+    if (this.vrDisplay) {
+      this.vrDisplay.getFrameData(this.frameData); //console.log("Using webvr-polyfill version " + WebVRPolyfill.version + " with configuration: " + JSON.stringify(config));
+    } else {
+      this.vrDisplay = false;
+    }
+  }.bind(this));
+}
+
+/***/ }),
+
+/***/ "./src/enableParallax.js":
+/*!*******************************!*\
+  !*** ./src/enableParallax.js ***!
+  \*******************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return enableParallax; });
+/* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! rellax */ "./node_modules/rellax/rellax.js");
+/* harmony import */ var rellax__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(rellax__WEBPACK_IMPORTED_MODULE_0__);
+
+function enableParallax(className, speed) {
+  var parallaxItem = new rellax__WEBPACK_IMPORTED_MODULE_0___default.a(".".concat(className), {
+    speed: speed,
+    center: true
+  });
+}
+
+/***/ }),
+
+/***/ "./src/generateRenderer.js":
+/*!*********************************!*\
+  !*** ./src/generateRenderer.js ***!
+  \*********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return generateRenderer; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+/* harmony import */ var _isWebGL2Available__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./isWebGL2Available */ "./src/isWebGL2Available.js");
+
+
+function generateRenderer() {
+  var renderer;
+
+  if (Object(_isWebGL2Available__WEBPACK_IMPORTED_MODULE_1__["default"])()) {
+    //Use WebGL2
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('webgl2');
+    renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({
+      canvas: canvas,
+      context: context,
+      antialias: true,
+      alpha: true
+    });
+  } else {
+    renderer = new three__WEBPACK_IMPORTED_MODULE_0__["WebGLRenderer"]({
+      antialias: true,
+      alpha: true
+    });
+  }
+
+  renderer.setClearColor(0x000000, 0);
+  renderer.setSize(this.w, this.h);
+  var container = document.createElement('div');
+  container.style.height = this.h + 'px';
+  container.style.width = this.w + 'px';
+  container.style.overflow = 'hidden';
+  container.style.position = 'absolute';
+  container.style.zIndex = 0;
+  container.appendChild(renderer.domElement);
+  this.target.prepend(container);
+  return renderer;
+}
+
+/***/ }),
+
+/***/ "./src/getImageMin.js":
+/*!****************************!*\
+  !*** ./src/getImageMin.js ***!
+  \****************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return getImageMinSize; });
+function getImageMinSize() {
+  var imageAspect = this.imageWidth / this.imageHeight;
+  var containerAspect = this.w / this.h;
+
+  if (this.imageOrientation === 'portrait') {
+    if (this.h > this.w) {
+      //Contaer is in portrait mode
+      if (imageAspect < containerAspect) {
+        //Image is taller than container
+        return this.imageWidth;
+      } else {
+        return this.imageHeight;
+      }
+    } else {
+      //Contanier is in landscape mode or square
+      return this.imageWidth / containerAspect;
+    }
+  } else if (this.imageOrientation === 'landscape') {
+    var imageHeight = this.w / imageAspect;
+
+    if (imageHeight > this.h) {
+      return this.h;
+    } else {
+      return this.imageHeight;
+    }
+  } else {
+    //Image orientation is square
+    var imageWidth = this.h * imageAspect;
+
+    if (this.w > this.h) {
+      //Container orientation is landscape
+      return this.h;
+    } else {
+      return this.h;
+    }
+  }
+}
+
+/***/ }),
+
+/***/ "./src/handleStaticImage.js":
+/*!**********************************!*\
+  !*** ./src/handleStaticImage.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return handleStaticImage; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+function handleStaticImage(imageSource, cb) {
+  var loader = new three__WEBPACK_IMPORTED_MODULE_0__["TextureLoader"]();
+  loader.load(imageSource, function (texture) {
+    //onload
+    texture.minFilter = three__WEBPACK_IMPORTED_MODULE_0__["LinearFilter"];
+    this.imageWidth = texture.image.width;
+    this.imageHeight = texture.image.height; //Determine image orientation
+
+    if (this.imageHeight > this.imageWidth) {
+      this.imageOrientation = 'portrait';
+    } else if (this.imageWidth === this.imageHeight) {
+      this.imageOrientation = 'square';
+    } else {
+      this.imageOrientation = 'landscape';
+    }
+
+    cb(texture);
+  }.bind(this), //progress callback not yet supported
+  undefined, function (err) {
+    //onError
+    console.error(err);
+    throw new Error('failed to load image ' + imageSource);
+  });
+}
+
+/***/ }),
+
+/***/ "./src/isWebGL2Available.js":
+/*!**********************************!*\
+  !*** ./src/isWebGL2Available.js ***!
+  \**********************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return isWebGL2Available; });
+function isWebGL2Available() {
+  try {
+    var canvas = document.createElement('canvas');
+    return !!(window.WebGL2RenderingContext && canvas.getContext('webgl2'));
+  } catch (e) {
+    return false;
+  }
+}
+
+/***/ }),
+
+/***/ "./src/onResize.js":
+/*!*************************!*\
+  !*** ./src/onResize.js ***!
+  \*************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return onResize; });
+function onResize() {
+  if (window.innerHeight < window.innerWidth) {
+    this.phoneOrientation = 'landscape';
+  } else {
+    this.phoneOrientation = 'portrait';
+  }
+
+  this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
+  this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
+  this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
+  this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
+  this.imagePlane.position.x = parseInt(this.offsetX);
+  this.imagePlane.position.y = parseInt(this.offsetY);
+  this.boundingRect = this.target.getBoundingClientRect();
+  this.w = this.boundingRect.width;
+  this.h = this.boundingRect.height;
+  this.target.children[0].style.height = this.h + 'px';
+  this.target.children[0].style.width = this.w + 'px';
+  this.camera.aspect = this.w / this.h;
+  this.camera.updateProjectionMatrix();
+  this.renderer.setSize(this.w, this.h);
+  this.imageMinSize = this.getImageMinSize();
+  this.freedom = Math.floor(this.imageMinSize / 2) * (this.sensitivity / 10);
+  this.dist = (this.imageMinSize - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
+  this.camera.position.z = this.dist;
+  this.camera.position.z -= this.zoom;
+  this.renderer.render(this.scene, this.camera);
+}
+
+/***/ }),
+
+/***/ "./src/reset.js":
+/*!**********************!*\
+  !*** ./src/reset.js ***!
+  \**********************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return reset; });
+function isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+function _construct(Parent, args, Class) { if (isNativeReflectConstruct()) { _construct = Reflect.construct; } else { _construct = function _construct(Parent, args, Class) { var a = [null]; a.push.apply(a, args); var Constructor = Function.bind.apply(Parent, a); var instance = new Constructor(); if (Class) _setPrototypeOf(instance, Class.prototype); return instance; }; } return _construct.apply(null, arguments); }
+
+function _setPrototypeOf(o, p) { _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) { o.__proto__ = p; return o; }; return _setPrototypeOf(o, p); }
+
+function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _nonIterableSpread(); }
+
+function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance"); }
+
+function _iterableToArray(iter) { if (Symbol.iterator in Object(iter) || Object.prototype.toString.call(iter) === "[object Arguments]") return Array.from(iter); }
+
+function _arrayWithoutHoles(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = new Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } }
+
+//Reset the phone's original orientation value
+function reset() {
+  this.vrDisplay.getFrameData(this.frameData);
+  this.originalQ = _construct(Quaternion, _toConsumableArray(this.frameData.pose.orientation));
+  this.phoneContainer.setRotationFromQuaternion(this.originalQ);
+}
+
+/***/ }),
+
+/***/ "./src/visualizer.js":
+/*!***************************!*\
+  !*** ./src/visualizer.js ***!
+  \***************************/
+/*! exports provided: default */
+/***/ (function(module, __webpack_exports__, __webpack_require__) {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return visualize; });
+/* harmony import */ var three__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! three */ "./node_modules/three/build/three.module.js");
+
+function visualize() {
+  //Original Phone position (phone container)
+  var pcg = new three__WEBPACK_IMPORTED_MODULE_0__["BoxBufferGeometry"](2, 4, 0.3);
+  var pcm = new three__WEBPACK_IMPORTED_MODULE_0__["MeshNormalMaterial"]({
+    wireframe: true
+  });
+  var pc = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](pcg, pcm);
+  pc.setRotationFromQuaternion(this.originalQ);
+  this.phoneContainer = pc; //Phone
+
+  var pm = new three__WEBPACK_IMPORTED_MODULE_0__["MeshBasicMaterial"]({
+    color: 0x000000
+  });
+  var pg = new three__WEBPACK_IMPORTED_MODULE_0__["BoxBufferGeometry"](2, 4, 0.3);
+  var p = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](pg, pm);
+  this.phone = p; //Target Position Object
+
+  var tg = new three__WEBPACK_IMPORTED_MODULE_0__["SphereGeometry"](1, 1, 1);
+  var tm = new three__WEBPACK_IMPORTED_MODULE_0__["MeshNormalMaterial"]({
+    wireframe: true
+  });
+  this.targetPosition = new three__WEBPACK_IMPORTED_MODULE_0__["Mesh"](tg, tm);
+  this.targetPosition.position.set(0, 0, -1);
+  this.scene.add(this.phoneContainer);
+  this.scene.add(this.phone); //this.scene.add( this.targetPosition );
+
+  this.phoneContainer.add(this.phone);
+  this.phone.add(this.targetPosition);
+  this.scene.remove(this.imagePlane); //Create Canvas for logging x/y data
+
+  var canvas = document.createElement('canvas');
+  canvas.width = Math.floor(this.h / 4);
+  canvas.height = Math.floor(this.h / 4);
+  canvas.style.position = 'absolute';
+  canvas.style.right = 0;
+  canvas.style.bottom = 0;
+  canvas.style.border = '1px solid black';
+  this.target.appendChild(canvas);
+  var ctx = canvas.getContext("2d");
+  ctx.fillStyle = "#FFFFFF";
+  this.graphCTX = ctx;
+  this.graphCanvas = canvas;
+
+  this.animateGraph = function () {
+    this.graphCTX.clearRect(0, 0, this.graphCanvas.width, this.graphCanvas.height);
+    this.graphCTX.fillStyle = "#000000";
+    this.graphCTX.beginPath();
+    this.graphCTX.arc(this.graphCanvas.width * ((1 + this.targetVector.x) / 2), this.graphCanvas.height * ((1 + this.targetVector.y) / 2), 5, 0, 2 * Math.PI);
+    this.graphCTX.closePath();
+    this.graphCTX.fill();
+    this.graphCTX.stroke();
+  };
+
+  this.camera.position.set(0, 0, 5);
+  this.camera.rotation.set(0, 0, 0);
+}
 
 /***/ })
 

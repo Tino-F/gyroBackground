@@ -1,304 +1,35 @@
-/*
-
-Here are some of the options I plan on including:
-
-Sensitivity
-
-*/
-
-import WebVRPolyfill from 'webvr-polyfill';
-import Relax from 'rellax';
 import {
   Scene,
-  WebGLRenderer,
   PerspectiveCamera,
   TextureLoader,
   MeshBasicMaterial,
   PlaneGeometry,
   Mesh,
-  LinearFilter,
-  RepeatWrapping,
   Vector3,
   Quaternion,
   Object3D
 } from 'three';
+import visualize from './src/visualizer';
+import enableAccelerometer from './src/enableAccelerometer';
+import getImageMinSize from './src/getImageMin';
+import resize from './src/onResize';
+import animate from './src/animate';
+import generateRenderer from './src/generateRenderer';
+import handleStaticImage from './src/handleStaticImage';
+import enableParallax from './src/enableParallax';
+import reset from './src/reset';
 
 export default class GyroBackground {
 
-  isWebGL2Available() {
-		try {
-			var canvas = document.createElement( 'canvas' );
-			return !! ( window.WebGL2RenderingContext && canvas.getContext( 'webgl2' ) );
-		} catch ( e ) {
-			return false;
-		}
-	}
-
-  enableAccelerometer() {
-
-    let config = (function() {
-      let config = {};
-      let q = window.location.search.substring(1);
-      if (q === '') {
-        return config;
-      }
-      let params = q.split('&');
-      let param, name, value;
-      for (let i = 0; i < params.length; i++) {
-        param = params[i].split('=');
-        name = param[0];
-        value = param[1];
-        // All config values are either boolean or float
-        config[name] = value === 'true' ? true :
-                       value === 'false' ? false :
-                       parseFloat(value);
-      }
-      return config;
-    })();
-
-    let polyfill = new WebVRPolyfill( config );
-
-    this.frameData = new VRFrameData();
-
-    navigator.getVRDisplays().then(function ( vrDisplays ) {
-
-      this.vrDisplay = vrDisplays[0];
-
-      if ( this.vrDisplay ) {
-
-        this.vrDisplay.getFrameData( this.frameData );
-        console.log("Using webvr-polyfill version " + WebVRPolyfill.version + " with configuration: " + JSON.stringify(config));
-
-      } else {
-
-        this.vrDisplay = false;
-
-      }
-
-    }.bind( this ))
-
-  }
-
-  enableParallax( className, speed ) {
-
-    let parallaxItem = new Relax( `.${className}`, {
-      speed: speed,
-      center: true
-    });
-
-  }
-
-  getSquareMax() {
-
-    let imageAspect = this.imageWidth / this.imageHeight;
-    let containerAspect = this.w / this.h;
-
-    if ( this.imageOrientation === 'portrait' ) {
-
-      if ( this.h > this.w ) {
-        //Contaer is in portrait mode
-
-        if ( imageAspect < containerAspect ) {
-          //Image is taller than container
-          return this.imageWidth;
-
-        } else {
-
-          return this.imageHeight
-
-        }
-
-      } else {
-        //Contanier is in landscape mode or square
-
-        return this.imageWidth / containerAspect;
-
-      }
-
-    } else if ( this.imageOrientation === 'landscape' ) {
-
-      let imageHeight = this.w / imageAspect;
-
-      if ( imageHeight > this.h ) {
-
-        return this.h;
-
-      } else {
-
-        return this.imageHeight;
-
-      }
-
-    } else {
-      //Image orientation is square
-
-      let imageWidth = this.h * imageAspect;
-
-      if ( this.w > this.h ) {
-        //Container orientation is landscape
-
-        return this.h;
-
-      } else {
-
-        return this.h
-
-      }
-
-    }
-
-  }
-
-  resize( e ) {
-
-    //Update sensitivity before zoom
-
-    if ( window.innerHeight < window.innerWidth ) {
-      this.phoneOrientation = 'landscape';
-    } else {
-      this.phoneOrientation = 'portrait';
-    }
-
-    this.sensitivity = this.phoneOrientation === 'landscape' ? this.landscapeSensitivity : this.portraitSensitivity;
-    this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-    this.offsetX = this.phoneOrientation === 'landscape' ? this.landscapeOffsetX : this.portraitOffsetX;
-    this.offsetY = this.phoneOrientation === 'landscape' ? this.landscapeOffsetY : this.portraitOffsetY;
-
-    this.imagePlane.position.x = parseInt(this.offsetX);
-    this.imagePlane.position.y = parseInt(this.offsetY);
-
-    this.boundingRect = this.target.getBoundingClientRect();
-    this.w = this.boundingRect.width;
-    this.h = this.boundingRect.height;
-
-    this.target.children[0].style.height = this.h + 'px';
-    this.target.children[0].style.width = this.w + 'px';
-
-    this.camera.aspect = this.w / this.h;
-    this.camera.updateProjectionMatrix();
-
-    this.renderer.setSize( this.w, this.h );
-
-    this.squareMax = this.getSquareMax();
-    this.freedom = Math.floor( this.squareMax / 2 ) * ( this.sensitivity / 10 );
-    this.dist = ( this.squareMax - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
-    this.camera.position.z = this.dist;
-    this.camera.position.z -= this.zoom;
-
-    this.renderer.render( this.scene, this.camera );
-
-  }
-
-  animate() {
-
-    this.vrDisplay.requestAnimationFrame( this.animate );
-
-    this.vrDisplay.getFrameData( this.frameData );
-    let orientation = [ ...this.frameData.pose.orientation ].map(x => x / 6.28);
-    orientation[3] = 1;
-
-    //this.phone.rotation.set( orientation[0] / 2, orientation[1] / 2, orientation[2] / 2 );
-
-    this.q.set( ...orientation )
-    this.q.normalize();
-    this.phone.setRotationFromQuaternion( this.q );
-
-    this.targetVector.copy( this.targetPosition.position );
-    this.targetPosition.localToWorld( this.targetVector );
-    this.phoneContainer.worldToLocal( this.targetVector );
-
-    //mapLinear( this.targetVector.y, 1 , 3 )
-
-    this.camera.position.x = ( this.targetVector.x * this.freedom ) * this.yInverse;
-    this.camera.position.y = ( this.targetVector.y * this.freedom ) * this.yInverse;
-    this.camera.rotation.z = orientation[2] * ( -0.4 * this.sensitivity/10 );
-
-    this.renderer.render( this.scene, this.camera );
-
-  }
-
-  generateRenderer() {
-
-    let renderer;
-
-    if ( this.isWebGL2Available() ) {
-      //Use WebGL2
-
-      let canvas = document.createElement( 'canvas' );
-      let context = canvas.getContext( 'webgl2' );
-      renderer = new WebGLRenderer( { canvas: canvas, context: context, antialias: true, alpha: true } );
-
-    } else {
-
-      renderer = new WebGLRenderer({ antialias: true, alpha: true });
-
-    }
-
-    renderer.setClearColor( 0x000000, 0 );
-    renderer.setSize( this.w, this.h );
-
-    let container = document.createElement('div');
-    container.style.height = this.h + 'px';
-    container.style.width = this.w + 'px';
-    container.style.overflow = 'hidden';
-    container.style.position = 'absolute';
-    container.style.zIndex = 0;
-    container.appendChild( renderer.domElement );
-    this.target.prepend( container )
-
-    return renderer;
-
-  }
-
-  handleStaticImage( imageSource, cb ) {
-
-    let loader = new TextureLoader();
-
-    loader.load( imageSource, function ( texture ) {
-      //onload
-
-      texture.minFilter = LinearFilter;
-      this.imageWidth = texture.image.width;
-      this.imageHeight = texture.image.height;
-
-      //Determine image orientation
-      if ( this.imageHeight > this.imageWidth ) {
-        this.imageOrientation = 'portrait';
-      } else if ( this.imageWidth === this.imageHeight ) {
-        this.imageOrientation = 'square';
-      } else {
-        this.imageOrientation = 'landscape';
-      }
-
-      cb( texture );
-
-    }.bind( this ),
-    //progress callback not yet supported
-    undefined,
-    function ( err ) {
-      //onError
-
-      console.error( err );
-      throw new Error('failed to load image ' + imageSource);
-
-    });
-
-  }
-
-  handleVideo( cb ) {
-
-    throw new Error('not written yet :D');
-
-  }
-
-  //Reset the Phone's container orientation
-
-  reset() {
-    this.vrDisplay.requestAnimationFrame( () => {} )
-    this.vrDisplay.getFrameData( this.frameData );
-    this.originalQ = new Quaternion( ...this.frameData.pose.orientation );
-    this.phoneContainer.setRotationFromQuaternion( this.originalQ );
-  }
+  enableAccelerometer() { enableAccelerometer.apply( this ); }
+  getImageMinSize() { return getImageMinSize.apply( this ); }
+  resize( e ) { resize.apply( this, e ); }
+  animate() { animate.apply( this ); }
+  generateRenderer() { return generateRenderer.apply( this ); }
+  handleStaticImage( imageSource, cb ) { handleStaticImage.call( this, imageSource, cb ); }
+  visualize() { visualize.apply( this ); }
+  enableParallax( className, speed ) { enableParallax.call( this, className, speed ); }
+  reset() { reset.apply( this ); }
 
   constructor(
     target,
@@ -337,7 +68,6 @@ export default class GyroBackground {
        landscapeOffset
      } ) {
 
-
     if ( !target || typeof(target) !== 'string' ) {
       throw new Error('No target was specified.');
     }
@@ -345,6 +75,15 @@ export default class GyroBackground {
     if ( !imageSource || typeof(imageSource) !== 'string' ) {
       throw new Error('No image was chosen.');
     }
+
+    this.resize = this.resize.bind( this );
+    this.enableAccelerometer = this.enableAccelerometer.bind( this );
+    this.animate = this.animate.bind( this );
+    this.enableParallax = this.enableParallax.bind( this );
+    this.generateRenderer = this.generateRenderer.bind( this );
+    this.getImageMinSize = this.getImageMinSize.bind( this );
+    this.reset = this.reset.bind( this );
+    this.visualize = this.visualize.bind( this );
 
     if ( window.innerHeight < window.innerWidth ) {
       this.phoneOrientation = 'landscape';
@@ -355,6 +94,8 @@ export default class GyroBackground {
     this.isIOS = !!navigator.platform && /iPad|iPhone|iPod/.test(navigator.platform);
     this.yInverse = this.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
+
+    this.animateGraph = false;
 
     this.landscapeOffsetX = typeof(landscapeOffsetX) === 'undefined' ? offsetX : landscapeOffsetX;
     this.landscapeOffsetY = typeof(landscapeOffsetY) === 'undefined' ? offsetY : landscapeOffsetY;
@@ -371,13 +112,6 @@ export default class GyroBackground {
 
     this.imageSource = imageSource;
     this.targetQuery = target;
-    this.resize = this.resize.bind( this );
-    this.enableAccelerometer = this.enableAccelerometer.bind( this );
-    this.animate = this.animate.bind( this );
-    this.enableParallax = this.enableParallax.bind( this );
-    this.generateRenderer = this.generateRenderer.bind( this );
-    this.getSquareMax = this.getSquareMax.bind( this );
-    this.reset = this.reset.bind( this );
 
     this.enableAccelerometer();
 
@@ -386,7 +120,8 @@ export default class GyroBackground {
 
     if ( this.fileType === '.gif' ) {
       //User selected a gif
-      this.loader = this.handleVideo.bind( this );
+      //replace handleStaticImage witha function to handle video/gif loading
+      this.loader = this.handleStaticImage.bind( this );
     } else {
       this.loader = this.handleStaticImage.bind( this );
     }
@@ -418,6 +153,7 @@ export default class GyroBackground {
         }
 
         this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
+
         let imageAspect = this.h / this.w;
         this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? ( this.phoneOrientation === 'landscape' ? zoom * imageAspect : zoom ) : landscapeZoom;
 
@@ -499,29 +235,24 @@ export default class GyroBackground {
 
           this.scene.add( this.imagePlane );
 
-          this.squareMax = this.getSquareMax();
+          this.imageMinSize = this.getImageMinSize();
 
           //Calculate how much space the plane needs to move based on sensitivity
-          this.freedom = Math.floor( this.squareMax / 2 ) * ( this.sensitivity / 10 );
+          this.freedom = Math.floor( this.imageMinSize / 2 ) * ( this.sensitivity / 10 );
           this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
 
           let imageAspect = this.imageWidth / this.imageHeight;
 
-          this.dist = ( this.squareMax - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
+          this.dist = ( this.imageMinSize - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
           this.camera.position.z = this.dist;
           this.camera.position.z -= this.zoom;
 
           this.vrDisplay.getFrameData( this.frameData );
 
-          console.log( this.frameData.pose.orientation );
           this.q = new Quaternion( this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] );
-          console.log( this.q )
           //this.q.normalize();
 
           this.originalQ = this.q.clone();
-
-          console.log( this.q )
-          console.log( this.originalQ )
 
           this.phoneContainer = new Object3D();
           this.phoneContainer.setRotationFromQuaternion( this.originalQ );
@@ -540,7 +271,6 @@ export default class GyroBackground {
           this.scene.add( this.phone );
 
           window.addEventListener('resize', this.resize.bind( this ));
-          //this.resize();
 
           if( this.isIOS ) {
 
