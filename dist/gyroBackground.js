@@ -52918,20 +52918,40 @@ function visualize() {
 
   this.phoneContainer.add(this.phone);
   this.phone.add(this.targetPosition);
-  this.scene.remove(this.imagePlane); //Create Canvas for logging x/y data
+  this.scene.remove(this.imagePlane);
+  var size = Math.floor(this.h / 4); //Create Canvas for logging x/y data
 
   var canvas = document.createElement('canvas');
-  canvas.width = Math.floor(this.h / 4);
-  canvas.height = Math.floor(this.h / 4);
-  canvas.style.position = 'absolute';
-  canvas.style.right = 0;
-  canvas.style.bottom = 0;
+  canvas.width = size;
+  canvas.height = size;
   canvas.style.border = '1px solid black';
-  this.target.appendChild(canvas);
   var ctx = canvas.getContext("2d");
-  ctx.fillStyle = "#FFFFFF";
   this.graphCTX = ctx;
-  this.graphCanvas = canvas;
+  this.graphCanvas = canvas; //Create x data visualizer
+
+  this.yEl = document.createElement('div');
+  this.yEl.style.display = 'flex';
+  this.yEl.style.justifyContent = 'center';
+  this.yEl.style.alignItems = 'center';
+  this.yEl.style.textAlign = 'center';
+  this.yEl.style.height = "".concat(size, "px");
+  this.yEl.style.position = 'absolute';
+  this.yEl.style.left = '-70px';
+  this.yEl.innerHTML = "Y <br/> ".concat(Number(this.targetVector.y).toFixed(5)); //Create y data visualizer
+
+  this.xEl = document.createElement('div');
+  this.xEl.style.width = "".concat(size, "px");
+  this.xEl.style.textAlign = 'center';
+  this.xEl.innerHTML = "X <br/> ".concat(Number(this.targetVector.x).toFixed(5)); //Create Container
+
+  var container = document.createElement('div');
+  container.style.position = 'absolute';
+  container.style.right = 0;
+  container.style.bottom = 0;
+  container.appendChild(this.xEl);
+  container.appendChild(this.yEl);
+  container.appendChild(canvas);
+  this.target.appendChild(container);
 
   this.animateGraph = function () {
     this.graphCTX.clearRect(0, 0, this.graphCanvas.width, this.graphCanvas.height);
@@ -52941,6 +52961,8 @@ function visualize() {
     this.graphCTX.closePath();
     this.graphCTX.fill();
     this.graphCTX.stroke();
+    this.xEl.innerHTML = "X <br/> ".concat(Number(this.targetVector.x).toFixed(5));
+    this.yEl.innerHTML = "Y <br/> ".concat(Number(this.targetVector.y).toFixed(5));
   };
 
   this.camera.position.set(0, 0, 5);

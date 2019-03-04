@@ -37,21 +37,45 @@ export default function visualize () {
     this.phone.add( this.targetPosition );
     this.scene.remove( this.imagePlane );
 
+    let size = Math.floor( this.h / 4 );
+
     //Create Canvas for logging x/y data
     let canvas = document.createElement('canvas');
-    canvas.width = Math.floor( this.h / 4 );
-    canvas.height = Math.floor( this.h / 4 );
-    canvas.style.position = 'absolute';
-    canvas.style.right = 0;
-    canvas.style.bottom = 0;
+    canvas.width = size;
+    canvas.height = size;
     canvas.style.border = '1px solid black';
-    this.target.appendChild( canvas );
 
     let ctx = canvas.getContext("2d");
-    ctx.fillStyle = "#FFFFFF";
-
     this.graphCTX = ctx;
     this.graphCanvas = canvas;
+
+    //Create x data visualizer
+    this.yEl = document.createElement('div');
+    this.yEl.style.display = 'flex';
+    this.yEl.style.justifyContent = 'center';
+    this.yEl.style.alignItems = 'center';
+    this.yEl.style.textAlign = 'center';
+    this.yEl.style.height = `${size}px`;
+    this.yEl.style.position = 'absolute';
+    this.yEl.style.left = '-70px';
+    this.yEl.innerHTML = `Y <br/> ${Number(this.targetVector.y).toFixed(5)}`;
+
+    //Create y data visualizer
+    this.xEl = document.createElement('div');
+    this.xEl.style.width = `${size}px`;
+    this.xEl.style.textAlign = 'center';
+    this.xEl.innerHTML = `X <br/> ${Number(this.targetVector.x).toFixed(5)}`;
+
+    //Create Container
+    let container = document.createElement('div');
+    container.style.position = 'absolute';
+    container.style.right = 0;
+    container.style.bottom = 0;
+
+    container.appendChild( this.xEl );
+    container.appendChild( this.yEl );
+    container.appendChild( canvas );
+    this.target.appendChild( container );
 
     this.animateGraph = function () {
       this.graphCTX.clearRect(0, 0, this.graphCanvas.width, this.graphCanvas.height);
@@ -61,6 +85,8 @@ export default function visualize () {
       this.graphCTX.closePath();
       this.graphCTX.fill();
       this.graphCTX.stroke();
+      this.xEl.innerHTML = `X <br/> ${Number(this.targetVector.x).toFixed(5)}`;
+      this.yEl.innerHTML = `Y <br/> ${Number(this.targetVector.y).toFixed(5)}`;
     }
 
     this.camera.position.set( 0, 0, 5 );

@@ -18,7 +18,7 @@ export default function animate () {
   this.targetPosition.localToWorld( this.targetVector );
   this.phoneContainer.worldToLocal( this.targetVector );
 
-  if ( this.animateGraph ) {
+  if( this.animateGraph ) {
 
     this.animateGraph();
 
