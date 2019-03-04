@@ -3,10 +3,9 @@
 
 <p align='center'>
 This is a javascript library that uses the WebVR API to create web backgrounds that move with your phone. I have a vision for it to be the next "parallax" of the web. Feel free to contribute!
-
-
-Currently only supported on WebVR compatible devices
 </p>
+
+<p align='center'><span style='color:red'>Only supported on WebVR compatible devices.</span></p>
 
 ## Usage
 
