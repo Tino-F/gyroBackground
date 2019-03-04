@@ -3,11 +3,12 @@
   <head>
     <meta charset="utf-8">
     <title>Kaleido Background Demo</title>
-    <script src='../dist/gyroBackground.js'></script>
+    <script src='../dist/gyroBackground.min.js'></script>
+    <link rel='stylesheet' href='css/main.css' />
     <script type="text/javascript">
 
-      var background = new GyroBackground('.gyros', 'imgs/4.jpg', {
-        sensitivity: 3,
+      var background = new GyroBackground('.gyros', 'imgs/aerial-photography-aerial-shot-beach.jpg', {
+        sensitivity: 1,
         parallax: true,
         parallaxSpeed: -4,
         landscapeOffsetX: 10
@@ -17,22 +18,9 @@
   </head>
   <body>
 
-    <h1 style='font-family: sans-serif; width: 100%; color: #707070; text-align: center;'>Gyroscopic Background</h1>
-
-    <div id='target' class='gyros' style='font-family: sans-serif; width: 100%; color: #707070; height: 40vh;'>
-      <h1>Test</h1>
+    <div id='target' class='gyros' style='font-family: sans-serif; width: 100%; color: #707070; height: 100vh;'>
+      <h1>Demo</h1>
     </div>
-
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
-    <h5>More info</h5>
 
   </body>
 </html>

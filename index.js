@@ -76,6 +76,14 @@ export default class GyroBackground {
       throw new Error('No image was chosen.');
     }
 
+    //Remove THREE.js logging
+    const oldLog = console.log;
+    console.log = function(...args) {
+      for (let part of args)
+        if (part.match("THREE")) return
+      oldLog(...args)
+    };
+
     this.resize = this.resize.bind( this );
     this.enableAccelerometer = this.enableAccelerometer.bind( this );
     this.animate = this.animate.bind( this );
@@ -241,19 +249,17 @@ export default class GyroBackground {
           this.freedom = Math.floor( this.imageMinSize / 2 ) * ( this.sensitivity / 10 );
           this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
 
-          let imageAspect = this.imageWidth / this.imageHeight;
-
+          //Calculate the distance the camera needs to be from the image in order to be fill the screen
           this.dist = ( this.imageMinSize - ( this.freedom * 2 ) ) / ( 2 * Math.tan( this.camera.fov * Math.PI / 360 ) );
           this.camera.position.z = this.dist;
           this.camera.position.z -= this.zoom;
 
+          //Get initial orientation data
           this.vrDisplay.getFrameData( this.frameData );
-
           this.q = new Quaternion( this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3] );
-          //this.q.normalize();
-
           this.originalQ = this.q.clone();
 
+          //Create a element to keep track of the phone's original orientation
           this.phoneContainer = new Object3D();
           this.phoneContainer.setRotationFromQuaternion( this.originalQ );
 
@@ -272,6 +278,7 @@ export default class GyroBackground {
 
           window.addEventListener('resize', this.resize.bind( this ));
 
+          //Fix IOS issue
           if( this.isIOS ) {
 
             if ( parseInt( this.originalQ._x.toFixed() ) === -0 ) {

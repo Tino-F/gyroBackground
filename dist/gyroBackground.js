@@ -234,7 +234,23 @@ function () {
 
     if (!imageSource || typeof imageSource !== 'string') {
       throw new Error('No image was chosen.');
-    }
+    } //Remove THREE.js logging
+
+
+    var oldLog = console.log;
+
+    console.log = function () {
+      for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
+        args[_key] = arguments[_key];
+      }
+
+      for (var _i = 0; _i < args.length; _i++) {
+        var part = args[_i];
+        if (part.match("THREE")) return;
+      }
+
+      oldLog.apply(void 0, args);
+    };
 
     this.resize = this.resize.bind(this);
     this.enableAccelerometer = this.enableAccelerometer.bind(this);
@@ -368,17 +384,16 @@ function () {
           this.imageMinSize = this.getImageMinSize(); //Calculate how much space the plane needs to move based on sensitivity
 
           this.freedom = Math.floor(this.imageMinSize / 2) * (this.sensitivity / 10);
-          this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom;
-
-          var _imageAspect = this.imageWidth / this.imageHeight;
+          this.zoom = this.phoneOrientation === 'landscape' ? this.landscapeZoom : this.portraitZoom; //Calculate the distance the camera needs to be from the image in order to be fill the screen
 
           this.dist = (this.imageMinSize - this.freedom * 2) / (2 * Math.tan(this.camera.fov * Math.PI / 360));
           this.camera.position.z = this.dist;
-          this.camera.position.z -= this.zoom;
-          this.vrDisplay.getFrameData(this.frameData);
-          this.q = new three__WEBPACK_IMPORTED_MODULE_0__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]); //this.q.normalize();
+          this.camera.position.z -= this.zoom; //Get initial orientation data
 
-          this.originalQ = this.q.clone();
+          this.vrDisplay.getFrameData(this.frameData);
+          this.q = new three__WEBPACK_IMPORTED_MODULE_0__["Quaternion"](this.frameData.pose.orientation[0], this.frameData.pose.orientation[1], this.frameData.pose.orientation[2], this.frameData.pose.orientation[3]);
+          this.originalQ = this.q.clone(); //Create a element to keep track of the phone's original orientation
+
           this.phoneContainer = new three__WEBPACK_IMPORTED_MODULE_0__["Object3D"]();
           this.phoneContainer.setRotationFromQuaternion(this.originalQ);
           this.phone = new three__WEBPACK_IMPORTED_MODULE_0__["Object3D"]();
@@ -390,7 +405,7 @@ function () {
           this.phoneContainer.add(this.phone);
           this.phone.add(this.targetPosition);
           this.scene.add(this.phone);
-          window.addEventListener('resize', this.resize.bind(this));
+          window.addEventListener('resize', this.resize.bind(this)); //Fix IOS issue
 
           if (this.isIOS) {
             if (parseInt(this.originalQ._x.toFixed()) === -0) {
@@ -52686,7 +52701,16 @@ function generateRenderer() {
   container.style.overflow = 'hidden';
   container.style.position = 'absolute';
   container.style.zIndex = 0;
-  container.appendChild(renderer.domElement);
+  container.appendChild(renderer.domElement); //Make sure the zIndex of all the children are at least 1
+
+  for (var i = 0; i < this.target.children.length; i++) {
+    var child = this.target.children[i];
+
+    if (child.style.zIndex == 0 || !child.style.zIndex) {
+      child.style.zIndex = 1;
+    }
+  }
+
   this.target.prepend(container);
   return renderer;
 }
