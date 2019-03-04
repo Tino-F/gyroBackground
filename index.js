@@ -290,7 +290,10 @@ export default class GyroBackground {
           }
 
           this.animate();
-          this.visualize();
+          
+          if ( visualize ) {
+            this.visualize();
+          }
 
         }
 

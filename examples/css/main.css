@@ -5,10 +5,15 @@ body {
 .gyro {
   font-family: sans-serif;
   width: 100%;
-  color: #707070;
+  color: #EEEEEE;
   height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2em;
+  font-size: 3em;
+}
+
+.gyro a {
+  text-decoration: none;
+  color: #DDDDDD
 }

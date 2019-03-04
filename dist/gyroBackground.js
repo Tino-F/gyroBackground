@@ -417,7 +417,10 @@ function () {
           }
 
           this.animate();
-          this.visualize();
+
+          if (visualize) {
+            this.visualize();
+          }
         }
       }.bind(this));
     }.bind(this));
