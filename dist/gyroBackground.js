@@ -118,8 +118,6 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _src_handleStaticImage__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! ./src/handleStaticImage */ "./src/handleStaticImage.js");
 /* harmony import */ var _src_enableParallax__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! ./src/enableParallax */ "./src/enableParallax.js");
 /* harmony import */ var _src_reset__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! ./src/reset */ "./src/reset.js");
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 function _defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } }
@@ -188,9 +186,7 @@ function () {
   }]);
 
   function GyroBackground(target, imageSource) {
-    var _ref2;
-
-    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : (_ref2 = {
+    var _ref = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {
       sensitivity: 0.5,
       inverted: false,
       parallax: false,
@@ -202,8 +198,11 @@ function () {
       landscapeZoom: landscapeZoom,
       offsetX: 0,
       offsetY: 0,
-      portraitOffset: portraitOffset
-    }, _defineProperty(_ref2, "portraitOffset", portraitOffset), _defineProperty(_ref2, "landscapeOffset", landscapeOffset), _defineProperty(_ref2, "landscapeOffset", landscapeOffset), _ref2),
+      portraitOffsetX: portraitOffsetX,
+      portraitOffsetY: portraitOffsetY,
+      landscapeOffsetX: landscapeOffsetX,
+      landscapeOffsetY: landscapeOffsetY
+    },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
         _ref$inverted = _ref.inverted,

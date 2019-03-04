@@ -58,13 +58,13 @@ export default function visualize () {
     this.yEl.style.height = `${size}px`;
     this.yEl.style.position = 'absolute';
     this.yEl.style.left = '-70px';
-    this.yEl.innerHTML = `Y <br/> ${Number(this.targetVector.y).toFixed(5)}`;
+    this.yEl.innerHTML = `Y <br/> ${ Number(this.targetVector.y).toFixed(5) }`;
 
     //Create y data visualizer
     this.xEl = document.createElement('div');
     this.xEl.style.width = `${size}px`;
     this.xEl.style.textAlign = 'center';
-    this.xEl.innerHTML = `X <br/> ${Number(this.targetVector.x).toFixed(5)}`;
+    this.xEl.innerHTML = `X <br/> ${ Number(this.targetVector.x).toFixed(5) }`;
 
     //Create Container
     let container = document.createElement('div');
@@ -85,8 +85,8 @@ export default function visualize () {
       this.graphCTX.closePath();
       this.graphCTX.fill();
       this.graphCTX.stroke();
-      this.xEl.innerHTML = `X <br/> ${Number(this.targetVector.x).toFixed(5)}`;
-      this.yEl.innerHTML = `Y <br/> ${Number(this.targetVector.y).toFixed(5)}`;
+      this.xEl.innerHTML = `X <br/> ${ Number(this.targetVector.x).toFixed(5) }`;
+      this.yEl.innerHTML = `Y <br/> ${ Number(this.targetVector.y).toFixed(5) }`;
     }
 
     this.camera.position.set( 0, 0, 5 );

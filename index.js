@@ -62,10 +62,10 @@ export default class GyroBackground {
        landscapeZoom,
        offsetX: 0,
        offsetY: 0,
-       portraitOffset,
-       portraitOffset,
-       landscapeOffset,
-       landscapeOffset
+       portraitOffsetX,
+       portraitOffsetY,
+       landscapeOffsetX,
+       landscapeOffsetY
      } ) {
 
     if ( !target || typeof(target) !== 'string' ) {
