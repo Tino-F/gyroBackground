@@ -1,5 +1,7 @@
 const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+//const webpack = require('webpack');
 
 module.exports = {
     "mode": "development",
@@ -7,7 +9,10 @@ module.exports = {
       "gyroBackground": path.join(__dirname, "entry.js"),
       "gyroBackground.min": path.join(__dirname, "entry.js"),
     },
-    "devtool": "source-map",
+    "plugins": [
+      //new BundleAnalyzerPlugin()
+    ],
+    "devtool": "cheap-source-map",
     "devServer": {
       host: '0.0.0.0',
       watchContentBase: true,
@@ -26,8 +31,14 @@ module.exports = {
     "optimization": {
       "minimize": true,
       "minimizer": [new UglifyJsPlugin({
-        include: /\.min\.js$/
-      })]
+        include: /\.min\.js$/,
+        parallel: true,
+        uglifyOptions: {
+          mangle: true
+        }
+      })],
+      "usedExports": true,
+      "sideEffects": true
     },
     "module": {
         "rules": [
@@ -39,7 +50,8 @@ module.exports = {
                     "loader": "babel-loader",
                     "options": {
                         "presets": [
-                            "@babel/env"
+                            "@babel/env",
+                            //{ modules: false }
                         ]
                     }
                 }

@@ -1,7 +1,6 @@
 import {
   Scene,
   PerspectiveCamera,
-  TextureLoader,
   MeshBasicMaterial,
   PlaneGeometry,
   Mesh,
