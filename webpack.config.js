@@ -10,10 +10,10 @@ module.exports = {
       "gyroBackground.min": path.join(__dirname, "entry.js"),
     },
     "plugins": [
-      //new BundleAnalyzerPlugin()
+      //new BundleAnalyzerPlugin(),
       new webpack.optimize.AggressiveMergingPlugin()
     ],
-    "devtool": "source-map",
+    "devtool": "cheap-module-source-map",
     "devServer": {
       host: '0.0.0.0',
       watchContentBase: true,
@@ -33,7 +33,11 @@ module.exports = {
       "minimize": true,
       "minimizer": [new UglifyJsPlugin({
         include: /\.min\.js$/
-      })]
+      })],
+      "namedChunks": false,
+      "sideEffects": true,
+      "usedExports": true,
+      "concatenateModules": true,
     },
     "module": {
         "rules": [
