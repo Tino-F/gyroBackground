@@ -26,7 +26,7 @@ npm install --save gyrobackground
 #### builds
 
 ```js
-<script src="https://unpkg.com/gyrobackground@0.5.0/dist/gyroBackground.min.js"></script>
+<script src="https://unpkg.com/gyrobackground@0.5.1/dist/gyroBackground.min.js"></script>
 ```
 <br/>
 
