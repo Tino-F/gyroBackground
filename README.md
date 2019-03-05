@@ -5,7 +5,27 @@
 This is a javascript library that uses the WebVR API to create web backgrounds that move with your phone. I have a vision for it to be the next "parallax" of the web. Feel free to contribute!
 </p>
 
+<p align='center'>
+  <img src='https://img.shields.io/github/license/Tino-F/gyroBackground.svg' alt='license'/>
+  <img src='https://img.shields.io/npm/v/gyrobackground.svg' alt='version'/>
+</p>
+
 <p align='center'><span style='color:red'>Only supported on WebVR compatible devices.</span></p>
+
+## Installation
+
+#### npm
+
+```
+npm install --save aframe
+# Or yarn add aframe
+```
+
+#### builds
+
+```js
+<script src="https://unpkg.com/gyrobackground@0.5.0/dist/gyroBackground.min.js"></script>
+```
 
 ## Usage
 
