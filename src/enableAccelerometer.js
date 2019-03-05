@@ -1,4 +1,4 @@
-import WebVRPolyfill from 'webvr-polyfill';
+const WebVRPolyfill = require('webvr-polyfill');
 
 export default function enableAccelerometer() {
 

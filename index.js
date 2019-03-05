@@ -1,13 +1,12 @@
-import {
-  Scene,
-  PerspectiveCamera,
-  MeshBasicMaterial,
-  PlaneGeometry,
-  Mesh,
-  Vector3,
-  Quaternion,
-  Object3D
-} from 'three';
+const { PlaneGeometry } = require('three/src/geometries/PlaneGeometry');
+const { Mesh } = require('three/src/objects/Mesh');
+const { MeshBasicMaterial } = require('three/src/materials/MeshBasicMaterial');
+const { Vector3 } = require('three/src/math/Vector3');
+const { Scene } = require('three/src/scenes/Scene');
+const { Quaternion } = require('three/src/math/Quaternion');
+const { PerspectiveCamera } = require('three/src/cameras/PerspectiveCamera');
+const { Object3D } = require('three/src/core/Object3D');
+
 import visualize from './src/visualizer';
 import enableAccelerometer from './src/enableAccelerometer';
 import getImageMinSize from './src/getImageMin';

@@ -1,4 +1,4 @@
-import { WebGLRenderer } from 'three';
+const { WebGLRenderer } = require('three/src/renderers/WebGLRenderer');
 import isWebGL2Available from './isWebGL2Available';
 
 export default function generateRenderer() {

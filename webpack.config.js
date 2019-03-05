@@ -1,7 +1,7 @@
 const path = require('path');
 const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-//const webpack = require('webpack');
+const webpack = require('webpack');
 
 module.exports = {
     "mode": "development",
@@ -11,8 +11,9 @@ module.exports = {
     },
     "plugins": [
       //new BundleAnalyzerPlugin()
+      new webpack.optimize.AggressiveMergingPlugin()
     ],
-    "devtool": "cheap-source-map",
+    "devtool": "source-map",
     "devServer": {
       host: '0.0.0.0',
       watchContentBase: true,
@@ -31,14 +32,8 @@ module.exports = {
     "optimization": {
       "minimize": true,
       "minimizer": [new UglifyJsPlugin({
-        include: /\.min\.js$/,
-        parallel: true,
-        uglifyOptions: {
-          mangle: true
-        }
-      })],
-      "usedExports": true,
-      "sideEffects": true
+        include: /\.min\.js$/
+      })]
     },
     "module": {
         "rules": [
@@ -50,11 +45,18 @@ module.exports = {
                     "loader": "babel-loader",
                     "options": {
                         "presets": [
-                            "@babel/env",
-                            //{ modules: false }
+                            "@babel/env"
                         ]
                     }
                 }
+            },
+            {
+              "test": /\.(glsl|vs|fs|vert|frag)$/,
+              "include": /node_modules/,
+              "use": [
+                'raw-loader',
+                'glslify-loader'
+              ]
             }
         ]
     }

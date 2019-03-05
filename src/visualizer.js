@@ -1,10 +1,8 @@
-import {
-  MeshNormalMaterial,
-  MeshBasicMaterial,
-  Mesh,
-  BoxBufferGeometry,
-  SphereGeometry,
-} from 'three';
+const { Mesh } = require('three/src/objects/Mesh');
+const { MeshBasicMaterial } = require('three/src/materials/MeshBasicMaterial');
+const { MeshNormalMaterial } = require('three/src/materials/MeshNormalMaterial');
+const { BoxBufferGeometry } = require('three/src/geometries/BoxGeometry');
+const { SphereGeometry } = require('three/src/geometries/SphereGeometry');
 
 export default function visualize () {
 

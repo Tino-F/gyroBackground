@@ -1,7 +1,5 @@
-import {
-  TextureLoader,
-  LinearFilter
-} from 'three';
+const { LinearFilter } = require('three/src/constants');
+const { TextureLoader } = require('three/src/loaders/TextureLoader');
 
 export default function handleStaticImage( imageSource, cb ) {
 
