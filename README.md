@@ -17,8 +17,8 @@ This is a javascript library that uses the WebVR API to create web backgrounds t
 #### npm
 
 ```
-npm install --save aframe
-# Or yarn add aframe
+npm install --save gyrobackground
+# Or yarn add gyrobackground
 ```
 
 #### builds
