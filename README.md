@@ -26,6 +26,22 @@ npm install --save aframe
 ```js
 <script src="https://unpkg.com/gyrobackground@0.5.0/dist/gyroBackground.min.js"></script>
 ```
+<br/>
+
+```js
+require('gyrobackground')  // e.g., with Browserify or Webpack.
+```
+
+## Local Development
+
+```sh
+git clone https://github.com/Tino-F/gyroBackground.git  # Clone the repository.
+cd gyroBackground && npm install  # Install dependencies.
+npm start  # Start the local development server.
+```
+
+#### Generating builds
+`>npm run build`
 
 ## Usage
 
