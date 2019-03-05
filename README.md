@@ -1,6 +1,8 @@
 <h1 align='center'>Gyroscopic Background Images</h1>
 <p align='center'> <img src='http://gyroscopic-backgrounds.com/wp-content/uploads/2019/03/gyroBackground-400-1-e1551743354216.png'/> </p>
 
+<p><img src='https://github.com/Tino-F/gyroBackground/blob/master/examples/imgs/demo.gif?raw=true' /></p>
+
 <p align='center'>
 This is a javascript library that uses the WebVR API to create web backgrounds that move with your phone. I have a vision for it to be the next "parallax" of the web. Feel free to contribute!
 </p>
