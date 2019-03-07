@@ -1,4 +1,5 @@
 //Reset the phone's original orientation value
+const { Quaternion } = require('three/src/math/Quaternion');
 
 export default function reset() {
 
