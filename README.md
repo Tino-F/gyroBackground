@@ -31,7 +31,7 @@ require('gyrobackground')  // e.g., with Browserify or Webpack.
 #### builds
 
 ```js
-<script src="https://unpkg.com/gyrobackground@0.5.2/dist/gyroBackground.min.js"></script>
+<script src="https://unpkg.com/gyrobackground@0.5.4/dist/gyroBackground.min.js"></script>
 ```
 <br/>
 
