@@ -1,11 +1,13 @@
 export default function getImageMinSize() {
 
   let imageAspect = this.imageWidth / this.imageHeight;
-  let containerAspect = this.w / this.h;
+  let height = this.backgroundObject ? this.backgroundObject.h : this.h;
+  let width = this.backgroundObject ? this.backgroundObject.w : this.w;
+  let containerAspect = width / height;
 
   if ( this.imageOrientation === 'portrait' ) {
 
-    if ( this.h > this.w ) {
+    if ( height > width ) {
       //Contaer is in portrait mode
 
       if ( imageAspect < containerAspect ) {
@@ -27,11 +29,11 @@ export default function getImageMinSize() {
 
   } else if ( this.imageOrientation === 'landscape' ) {
 
-    let imageHeight = this.w / imageAspect;
+    let imageHeight = width / imageAspect;
 
-    if ( imageHeight > this.h ) {
+    if ( imageHeight > height ) {
 
-      return this.h;
+      return height;
 
     } else {
 
@@ -42,16 +44,16 @@ export default function getImageMinSize() {
   } else {
     //Image orientation is square
 
-    let imageWidth = this.h * imageAspect;
+    let imageWidth = height * imageAspect;
 
-    if ( this.w > this.h ) {
+    if ( width > height ) {
       //Container orientation is landscape
 
-      return this.h;
+      return height;
 
     } else {
 
-      return this.h
+      return height
 
     }
 

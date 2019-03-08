@@ -28,7 +28,8 @@ export default function generateRenderer() {
   container.style.zIndex = -1;
   container.appendChild( renderer.domElement );
 
-  this.target.prepend( container )
+  this.target.prepend( container );
+  this.rendererContainer = container;
 
   return renderer;
 }

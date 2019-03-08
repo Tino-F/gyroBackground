@@ -18,13 +18,15 @@ export default function onResize () {
   this.w = this.boundingRect.width;
   this.h = this.boundingRect.height;
 
-  this.target.children[0].style.height = this.h + 'px';
-  this.target.children[0].style.width = this.w + 'px';
+  this.rendererContainer.style.height = this.h + 'px';
+  this.rendererContainer.style.width = this.w + 'px';
 
   this.camera.aspect = this.w / this.h;
   this.camera.updateProjectionMatrix();
 
   this.renderer.setSize( this.w, this.h );
+
+  this.additionalBackgrounds.forEach( b => b.resize3D() );
 
   this.imageMinSize = this.getImageMinSize();
   this.freedom = Math.floor( this.imageMinSize / 2 ) * ( this.sensitivity / 10 );
@@ -33,5 +35,5 @@ export default function onResize () {
   this.camera.position.z -= this.zoom;
 
   this.renderer.render( this.scene, this.camera );
-  
+
 }

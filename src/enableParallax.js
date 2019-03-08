@@ -1,10 +1,12 @@
-import Relax from 'rellax';
+import Rellax from 'rellax';
 
 export default function enableParallax( className, speed ) {
 
-  let parallaxItem = new Relax( `.${className}`, {
+  let parallaxItem = new Rellax( `.${className}`, {
     speed: speed,
     center: true
   });
+
+  this.ready();
 
 }

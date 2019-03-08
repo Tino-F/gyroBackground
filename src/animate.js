@@ -24,6 +24,12 @@ export default function animate () {
 
   } else {
 
+    this.additionalBackgrounds.forEach( b => {
+      if( b.camera ) {
+        b.animate( orientation[2] ) } 
+      }
+    );
+
     this.camera.position.x = ( this.targetVector.x * this.freedom ) * this.yInverse;
     this.camera.position.y = ( this.targetVector.y * this.freedom ) * this.yInverse;
     this.camera.rotation.z = orientation[2] * ( -0.4 * this.sensitivity/10 );
