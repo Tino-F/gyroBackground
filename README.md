@@ -1,3 +1,4 @@
+
 <h1 align='center'>Gyroscopic Background Images</h1>
 <p align='center'> <img src='http://gyroscopic-backgrounds.com/wp-content/uploads/2019/03/gyroBackground-400-1-e1551743354216.png'/> </p>
 
@@ -57,7 +58,16 @@ var background = new GyroBackground('#myImage', 'imgs/4.jpg', {
 });
 ```
 
-## Options
+## Methods
+
+#### .add( imageURL, config )
+This method allows you to add multiple images with different settings to the same target element.
+
+#### .visualize()
+Displays a visualization on the Phone relative to it's orientation when GyroBackground was initialized.
+
+
+## Config options
 
 |    Option   |  Type  | Default Value | Description |
 |      --     |   --   |      --       |      --     |
