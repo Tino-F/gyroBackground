@@ -50,10 +50,21 @@ export default class additionalBackground {
 
   }
 
-  resizeParallax( w, h, vm ) {
-    this.backgroundObject.container.style.top = -vm + 'px';
-    this.backgroundObject.container.style.height = h + 'px';
-    this.backgroundObject.container.style.width = w + 'px';
+  orderZ() {
+    let length = this.backgroundObject.additionalBackgrounds.length;
+    this.backgroundObject.container.style.zIndex = -length - 2;
+    this.container.style.zIndex = -1;
+
+    this.backgroundObject.additionalBackgrounds.forEach( ( b, i ) => {
+      b.container.style.zIndex = ( i - length ) - 1
+    });
+  }
+
+  resizeParallax( h, vm ) {
+    this.container.style.top = -vm + 'px';
+    this.container.style.height = h + 'px';
+    this.container.style.width = this.backgroundObject.w + 'px';
+    this.orderZ();
   }
 
   initParallax( imageSource, speed ) {
@@ -70,15 +81,12 @@ export default class additionalBackground {
     this.container.style.backgroundPosition = 'center';
     this.container.style.backgroundImage = `url(${imageSource})`;
 
-    let length = this.backgroundObject.additionalBackgrounds.length;
-    this.backgroundObject.container.style.zIndex = -length - 2;
-    this.container.style.zIndex = -1;
+    if ( this.className ) {
+      this.container.classList.add( this.className );
+    }
 
-    this.backgroundObject.additionalBackgrounds.forEach( ( b, i ) => {
-      b.container.style.zIndex = ( i - length ) - 1
-    });
+    this.orderZ();
 
-    this.backgroundObject.container.style.zIndex
     this.target.prepend( this.container );
 
     let parallaxItem = new Rellax( `.${uniqueClass}`, {
@@ -160,7 +168,8 @@ export default class additionalBackground {
     portraitOffsetY,
     landscapeOffsetX,
     landscapeOffsetY,
-    visualize = false
+    visualize = false,
+    className = false
    } = {
      sensitivity: 0.5,
      inverted: false,
@@ -177,7 +186,8 @@ export default class additionalBackground {
      portraitOffsetY,
      landscapeOffsetX,
      landscapeOffsetY,
-     visualize: false
+     visualize: false,
+     className: false
    } ) {
 
      this.initParallax = this.initParallax.bind( this );
@@ -188,12 +198,14 @@ export default class additionalBackground {
      this.handleStaticImage = this.handleStaticImage.bind( this );
      this.getImageMinSize = this.getImageMinSize.bind( this );
      this.generateRenderer = this.generateRenderer.bind( this );
+     this.orderZ = this.orderZ.bind( this );
 
      if ( !imageSource || typeof(imageSource) !== 'string' ) {
        throw new Error('No image was chosen.');
      }
 
      this.backgroundObject = backgroundObject;
+     this.className = className;
 
      this.yInverse = this.backgroundObject.isIOS ? -1 : 1;
      this.yInverse *= inverted ? -1 : 1;
@@ -228,7 +240,7 @@ export default class additionalBackground {
        // Enable 3D Scene
 
        let imageAspect = this.backgroundObject.h / this.backgroundObject.w;
-       
+
        this.portraitZoom = typeof(portraitZoom) === 'undefined' ? zoom : portraitZoom;
        this.landscapeZoom = typeof(landscapeZoom) === 'undefined' ? ( this.backgroundObject.phoneOrientation === 'landscape' ? zoom * imageAspect : zoom ) : landscapeZoom;
 
@@ -255,6 +267,9 @@ export default class additionalBackground {
          //Just a regular background image
 
          this.target.style.backgroundImage = `url(${imageSource}), ${this.target.style.backgroundImage}`;
+         if ( this.className ) {
+           this.target.classList.add( this.className );
+         }
 
        }
      }

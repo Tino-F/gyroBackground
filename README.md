@@ -87,6 +87,7 @@ Displays a visualization on the Phone relative to it's orientation when GyroBack
 | landscapeOffsetY | int | offsetY | The image's offset from the auto-calculated Y position when the device is in landscape mode. |
 | inverted | Boolean | false | Reverse movement on the X & Y axis. |
 | visualize | Boolean | false | Show a 3D representation of the phone's original position vs current. |
+| className | String |    ''    | add a css class to identify the parallax containers |
 
 ## Library Credits
 * [Three.JS](https://github.com/mrdoob/three.js/)

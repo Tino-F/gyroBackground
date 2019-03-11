@@ -1,7 +1,7 @@
 const { WebGLRenderer } = require('three/src/renderers/WebGLRenderer');
 import isWebGL2Available from './isWebGL2Available';
 
-export default function generateRenderer() {
+export default function generateRenderer( className ) {
   let renderer;
 
   if ( isWebGL2Available() ) {
@@ -30,6 +30,10 @@ export default function generateRenderer() {
 
   this.target.prepend( container );
   this.rendererContainer = container;
+
+  if ( className ) {
+    this.rendererContainer.classList.add( className );
+  }
 
   return renderer;
 }

@@ -31221,7 +31221,7 @@ var generateRenderer_require = __webpack_require__(151),
     WebGLRenderer = generateRenderer_require.WebGLRenderer;
 
 
-function generateRenderer_generateRenderer() {
+function generateRenderer_generateRenderer(className) {
   var renderer;
 
   if (isWebGL2Available()) {
@@ -31252,6 +31252,11 @@ function generateRenderer_generateRenderer() {
   container.appendChild(renderer.domElement);
   this.target.prepend(container);
   this.rendererContainer = container;
+
+  if (className) {
+    this.rendererContainer.classList.add(className);
+  }
+
   return renderer;
 }
 // CONCATENATED MODULE: ./src/handleStaticImage.js
@@ -31391,11 +31396,22 @@ function () {
       this.camera.position.z -= this.zoom;
     }
   }, {
+    key: "orderZ",
+    value: function orderZ() {
+      var length = this.backgroundObject.additionalBackgrounds.length;
+      this.backgroundObject.container.style.zIndex = -length - 2;
+      this.container.style.zIndex = -1;
+      this.backgroundObject.additionalBackgrounds.forEach(function (b, i) {
+        b.container.style.zIndex = i - length - 1;
+      });
+    }
+  }, {
     key: "resizeParallax",
-    value: function resizeParallax(w, h, vm) {
-      this.backgroundObject.container.style.top = -vm + 'px';
-      this.backgroundObject.container.style.height = h + 'px';
-      this.backgroundObject.container.style.width = w + 'px';
+    value: function resizeParallax(h, vm) {
+      this.container.style.top = -vm + 'px';
+      this.container.style.height = h + 'px';
+      this.container.style.width = this.backgroundObject.w + 'px';
+      this.orderZ();
     }
   }, {
     key: "initParallax",
@@ -31411,13 +31427,12 @@ function () {
       this.container.style.backgroundSize = 'cover';
       this.container.style.backgroundPosition = 'center';
       this.container.style.backgroundImage = "url(".concat(imageSource, ")");
-      var length = this.backgroundObject.additionalBackgrounds.length;
-      this.backgroundObject.container.style.zIndex = -length - 2;
-      this.container.style.zIndex = -1;
-      this.backgroundObject.additionalBackgrounds.forEach(function (b, i) {
-        b.container.style.zIndex = i - length - 1;
-      });
-      this.backgroundObject.container.style.zIndex;
+
+      if (this.className) {
+        this.container.classList.add(this.className);
+      }
+
+      this.orderZ();
       this.target.prepend(this.container);
       var parallaxItem = new Rellax(".".concat(uniqueClass), {
         speed: speed,
@@ -31502,7 +31517,8 @@ function () {
       portraitOffsetY: portraitOffsetY,
       landscapeOffsetX: landscapeOffsetX,
       landscapeOffsetY: landscapeOffsetY,
-      visualize: false
+      visualize: false,
+      className: false
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
@@ -31527,7 +31543,9 @@ function () {
         landscapeOffsetX = _ref.landscapeOffsetX,
         landscapeOffsetY = _ref.landscapeOffsetY,
         _ref$visualize = _ref.visualize,
-        visualize = _ref$visualize === void 0 ? false : _ref$visualize;
+        visualize = _ref$visualize === void 0 ? false : _ref$visualize,
+        _ref$className = _ref.className,
+        className = _ref$className === void 0 ? false : _ref$className;
 
     _classCallCheck(this, additionalBackground);
 
@@ -31539,12 +31557,14 @@ function () {
     this.handleStaticImage = this.handleStaticImage.bind(this);
     this.getImageMinSize = this.getImageMinSize.bind(this);
     this.generateRenderer = this.generateRenderer.bind(this);
+    this.orderZ = this.orderZ.bind(this);
 
     if (!imageSource || typeof imageSource !== 'string') {
       throw new Error('No image was chosen.');
     }
 
     this.backgroundObject = backgroundObject;
+    this.className = className;
     this.yInverse = this.backgroundObject.isIOS ? -1 : 1;
     this.yInverse *= inverted ? -1 : 1;
     this.landscapeOffsetX = typeof landscapeOffsetX === 'undefined' ? offsetX : landscapeOffsetX;
@@ -31589,6 +31609,10 @@ function () {
       } else {
         //Just a regular background image
         this.target.style.backgroundImage = "url(".concat(imageSource, "), ").concat(this.target.style.backgroundImage);
+
+        if (this.className) {
+          this.target.classList.add(this.className);
+        }
       }
     }
   }
@@ -31731,7 +31755,8 @@ function () {
       portraitOffsetY: portraitOffsetY,
       landscapeOffsetX: landscapeOffsetX,
       landscapeOffsetY: landscapeOffsetY,
-      visualize: false
+      visualize: false,
+      className: false
     },
         _ref$sensitivity = _ref.sensitivity,
         sensitivity = _ref$sensitivity === void 0 ? 0.5 : _ref$sensitivity,
@@ -31756,7 +31781,9 @@ function () {
         landscapeOffsetX = _ref.landscapeOffsetX,
         landscapeOffsetY = _ref.landscapeOffsetY,
         _ref$visualize = _ref.visualize,
-        visualize = _ref$visualize === void 0 ? false : _ref$visualize;
+        visualize = _ref$visualize === void 0 ? false : _ref$visualize,
+        _ref$className = _ref.className,
+        className = _ref$className === void 0 ? false : _ref$className;
 
     index_classCallCheck(this, GyroBackground);
 
@@ -31778,7 +31805,7 @@ function () {
 
       for (var _i = 0; _i < args.length; _i++) {
         var part = args[_i];
-        if (part.match("THREE")) return;
+        if (typeof part === 'string') if (part.match("THREE") || part.match('devicemotion')) return;
       }
 
       oldLog.apply(void 0, args);
@@ -31796,6 +31823,7 @@ function () {
     this.ready = this.ready.bind(this);
     this.additionalBackgrounds = [];
     this.readyQueue = [];
+    this.className = className;
 
     if (window.innerHeight < window.innerWidth) {
       this.phoneOrientation = 'landscape';
@@ -31871,13 +31899,16 @@ function () {
             this.container.style.backgroundSize = 'cover';
             this.container.style.backgroundPosition = 'center';
             this.container.style.backgroundImage = "url(".concat(this.imageSource, ")");
+
+            if (this.className) {
+              this.container.classList.add(this.className);
+            }
+
             this.target.prepend(this.container);
             this.enableParallax(uniqueClass, parallaxSpeed);
             this.state = 'parallax';
 
             var resizeParallax = function (e) {
-              var _this2 = this;
-
               this.boundingRect = this.target.getBoundingClientRect();
               this.w = this.boundingRect.width;
               this.h = this.boundingRect.height;
@@ -31892,14 +31923,14 @@ function () {
 
               var vm = (h - this.h) / 2;
               this.additionalBackgrounds.forEach(function (b) {
-                return b.resizeParallax(_this2.w, h, vm);
+                return b.resizeParallax(h, vm);
               });
               this.container.style.top = -vm + 'px';
               this.container.style.height = h + 'px';
               this.container.style.width = this.w + 'px';
-            }.bind(this);
+            }.bind(this); //resizeParallax();
 
-            resizeParallax();
+
             this.rp = resizeParallax;
             window.addEventListener('resize', resizeParallax);
           } else {
@@ -31907,13 +31938,18 @@ function () {
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = "url(".concat(this.imageSource, ")");
+
+            if (this.className) {
+              this.target.classList.add(this.className);
+            }
+
             this.ready();
           }
         } else if (this.vrDisplay) {
           this.state = 'gyro';
           this.camera = new index_PerspectiveCamera(75, this.w / this.h, 0.1, 3000);
           this.scene = new index_Scene();
-          this.renderer = this.generateRenderer();
+          this.renderer = this.generateRenderer(className);
           texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
           this.material = new index_MeshBasicMaterial({
             map: texture,

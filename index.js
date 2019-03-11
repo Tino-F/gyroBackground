@@ -68,7 +68,8 @@ export default class GyroBackground {
       portraitOffsetY,
       landscapeOffsetX,
       landscapeOffsetY,
-      visualize = false
+      visualize = false,
+      className = false
      } = {
        sensitivity: 0.5,
        inverted: false,
@@ -85,7 +86,8 @@ export default class GyroBackground {
        portraitOffsetY,
        landscapeOffsetX,
        landscapeOffsetY,
-       visualize: false
+       visualize: false,
+       className: false
      } ) {
 
     if ( !target || typeof(target) !== 'string' ) {
@@ -100,7 +102,8 @@ export default class GyroBackground {
     const oldLog = console.log;
     console.log = function(...args) {
       for (let part of args)
-        if (part.match("THREE")) return
+        if( typeof(part) === 'string')
+          if (part.match("THREE") || part.match('devicemotion')) return
       oldLog(...args)
     };
 
@@ -117,6 +120,7 @@ export default class GyroBackground {
 
     this.additionalBackgrounds = [];
     this.readyQueue = [];
+    this.className = className;
 
     if ( window.innerHeight < window.innerWidth ) {
       this.phoneOrientation = 'landscape';
@@ -206,6 +210,9 @@ export default class GyroBackground {
             this.container.style.backgroundSize = 'cover';
             this.container.style.backgroundPosition = 'center';
             this.container.style.backgroundImage = `url(${this.imageSource})`;
+            if ( this.className ) {
+              this.container.classList.add( this.className );
+            }
             this.target.prepend( this.container );
 
             this.enableParallax( uniqueClass, parallaxSpeed );
@@ -232,7 +239,7 @@ export default class GyroBackground {
               //vertical center margin
               let vm = ( h - this.h ) / 2;
 
-              this.additionalBackgrounds.forEach( b => b.resizeParallax( this.w, h, vm ) );
+              this.additionalBackgrounds.forEach( b => b.resizeParallax( h, vm ) );
 
               this.container.style.top = -vm + 'px';
               this.container.style.height = h + 'px';
@@ -240,7 +247,7 @@ export default class GyroBackground {
 
             }.bind( this );
 
-            resizeParallax();
+            //resizeParallax();
 
             this.rp = resizeParallax;
 
@@ -252,6 +259,11 @@ export default class GyroBackground {
             this.target.style.backgroundSize = 'cover';
             this.target.style.backgroundPosition = 'center';
             this.target.style.backgroundImage = `url(${this.imageSource})`;
+
+            if ( this.className ) {
+              this.target.classList.add( this.className );
+            }
+
             this.ready();
 
           }
@@ -262,7 +274,7 @@ export default class GyroBackground {
 
           this.camera = new PerspectiveCamera( 75, this.w / this.h, 0.1, 3000 );
           this.scene = new Scene();
-          this.renderer = this.generateRenderer();
+          this.renderer = this.generateRenderer( className );
 
           texture.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
           this.material = new MeshBasicMaterial({ map: texture, transparent: true });
