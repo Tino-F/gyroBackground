@@ -31,7 +31,7 @@ require('gyrobackground')  // e.g., with Browserify or Webpack.
 #### builds
 
 ```js
-<script src="https://unpkg.com/gyrobackground@0.5.4/dist/gyroBackground.min.js"></script>
+<script src="https://unpkg.com/gyrobackground@0.5.5/dist/gyroBackground.min.js"></script>
 ```
 <br/>
 
@@ -87,7 +87,7 @@ Displays a visualization on the Phone relative to it's orientation when GyroBack
 | landscapeOffsetY | int | offsetY | The image's offset from the auto-calculated Y position when the device is in landscape mode. |
 | inverted | Boolean | false | Reverse movement on the X & Y axis. |
 | visualize | Boolean | false | Show a 3D representation of the phone's original position vs current. |
-| className | String |    ''    | add a css class to identify the parallax containers |
+| className | String |    null    | add a css class to identify the parallax containers |
 
 ## Library Credits
 * [Three.JS](https://github.com/mrdoob/three.js/)

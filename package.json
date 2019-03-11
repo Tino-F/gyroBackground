@@ -1,6 +1,6 @@
 {
   "name": "gyrobackground",
-  "version": "0.5.4",
+  "version": "0.5.5",
   "description": "A simple way to create gyroscopically responsive background images.",
   "main": "index.js",
   "scripts": {
