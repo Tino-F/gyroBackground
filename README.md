@@ -92,6 +92,7 @@ Displays a visualization on the Phone relative to it's orientation when GyroBack
 ## Donations
 
 BTC: `14QoRj5Ex5aHCNhJGMoZZ5P9BsLY1a4dfu`
+
 XMR: `49pgRecAfychSR9dhd7gQyiaZjQGJyt6B1hVxJdGYYvmRR7VAJurDFSE3qZeui1AFAENKRw8EiB9nc5AYBPSBwrP9uSE9g2`
 
 ## Library Credits
