@@ -89,6 +89,11 @@ Displays a visualization on the Phone relative to it's orientation when GyroBack
 | visualize | Boolean | false | Show a 3D representation of the phone's original position vs current. |
 | className | String |    null    | add a css class to identify the parallax containers |
 
+## Donations
+
+BTC: `14QoRj5Ex5aHCNhJGMoZZ5P9BsLY1a4dfu`
+XMR: `49pgRecAfychSR9dhd7gQyiaZjQGJyt6B1hVxJdGYYvmRR7VAJurDFSE3qZeui1AFAENKRw8EiB9nc5AYBPSBwrP9uSE9g2`
+
 ## Library Credits
 * [Three.JS](https://github.com/mrdoob/three.js/)
 * [Rellax](https://github.com/dixonandmoe/rellax)
